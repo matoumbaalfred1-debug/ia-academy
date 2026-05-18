@@ -8431,28 +8431,69 @@ to {
   .pcr-bottom { position:sticky; bottom:0; }
 
   /* ─── PAGE DÉTAIL FORMATION (pcd) — MOBILE ─── */
-  #pcd { padding-top:56px; }
-  .pcd-hero { padding:56px 0 0; }
-  .pcd-hero-inner { grid-template-columns:1fr; gap:16px; padding:0 16px 24px; }
-  .pcd-title { font-size:1.5rem; margin-bottom:10px; }
-  .pcd-desc { font-size:.84rem; margin-bottom:16px; }
-  .pcd-meta-row { gap:10px; }
-  .pcd-meta-item { font-size:.76rem; }
-  /* Card inscription : visible sous le hero sur mobile */
-  .pcd-card { position:static; border-radius:16px; }
+  #pcd {
+    padding-top:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  /* Hero sombre : padding top pour nav */
+  .pcd-hero { padding:62px 0 0; }
+  /* Layout hero : 1 colonne, card SOUS le contenu */
+  .pcd-hero-inner {
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    padding:16px 16px 24px;
+  }
+  .pcd-left-hero { order:1; }
+  .pcd-card { order:2; position:static; border-radius:16px; }
+
+  /* Bouton retour */
+  .pcd-back { font-size:.8rem; margin-bottom:14px; }
+
+  /* Tags & titre */
+  .pcd-tag-row { flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .pcd-tag { font-size:.68rem; }
+  .pcd-title { font-size:1.45rem; margin-bottom:10px; line-height:1.25; }
+  .pcd-desc { font-size:.84rem; margin-bottom:14px; }
+
+  /* Méta infos */
+  .pcd-meta-row { flex-wrap:wrap; gap:8px 14px; }
+  .pcd-meta-item { font-size:.75rem; }
+
+  /* Card inscription */
+  .pcd-card-preview { aspect-ratio:16/8; }
   .pcd-card-body { padding:16px; }
-  .pcd-card-price { font-size:1.7rem; }
-  /* Corps */
-  .pcd-body { grid-template-columns:1fr; padding:16px 16px 60px; gap:20px; max-width:100%; }
-  /* Masquer la 2ème colonne (card dupliquée) sur mobile */
+  .pcd-card-price { font-size:1.6rem; }
+  .pcd-btn-start { padding:12px; font-size:.88rem; }
+
+  /* Corps de la page : 1 colonne, scroll */
+  .pcd-body {
+    display:block;
+    padding:16px 16px 80px;
+    max-width:100%;
+  }
   .pcd-body > div:last-child { display:none; }
+  .pcd-section { margin-bottom:28px; }
+  .pcd-section-title { font-size:1.05rem; margin-bottom:12px; }
+
+  /* Objectifs */
   .pcd-goals { grid-template-columns:1fr; gap:8px; }
   .pcd-goal { font-size:.82rem; }
-  .pcd-section-title { font-size:1.1rem; }
+
+  /* Modules */
   .pcd-module-head { padding:12px 14px; }
   .pcd-module-name2 { font-size:.84rem; }
   .pcd-module-meta2 { font-size:.7rem; }
-  .pcd-reviews-summary { flex-direction:column; gap:14px; }
+  .pcd-module-lesson { padding:9px 14px; font-size:.8rem; }
+
+  /* Formateur */
+  .pcd-instructor { flex-direction:column; gap:12px; }
+  .pcd-instructor-avatar { width:48px; height:48px; font-size:1.1rem; }
+
+  /* Avis */
+  .pcd-reviews-summary { flex-direction:column; gap:14px; padding:16px; }
+  .pcd-rating-big { font-size:2.4rem; }
 
   /* ─── DASHBOARD ─── */
   #pd { padding-top:56px; }
@@ -8498,31 +8539,35 @@ to {
   .btn-cta-w { width:100%; justify-content:center; }
 
   /* ─── PAGE DÉTAIL FORMATION (pfd) ─── */
-  #pfd-page,#pfd { padding-top:56px; }
-  .pfd-hero { padding:28px 4% 28px; }
-  .pfd-hero-inner { grid-template-columns:1fr; gap:20px; }
+  #pfd-page,#pfd {
+    padding-top:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .pfd-hero { padding:62px 4% 24px; }
+  .pfd-hero-inner { display:flex !important; flex-direction:column; gap:20px; }
+  .pfd-card { position:static !important; border-radius:16px; order:2; }
+  .pfd-hero-inner > div:first-child { order:1; }
   .pfd-hero-big-icon { width:54px; height:54px; border-radius:14px; margin-bottom:16px; }
-  .pfd-hero-title { font-size:clamp(1.5rem,5.5vw,2.2rem); margin-bottom:14px; }
-  .pfd-hero-desc { font-size:.84rem; margin-bottom:18px; }
-  .pfd-hero-meta { gap:8px; flex-wrap:wrap; }
+  .pfd-hero-title { font-size:clamp(1.4rem,5.5vw,2rem); margin-bottom:12px; }
+  .pfd-hero-desc { font-size:.84rem; margin-bottom:16px; }
+  .pfd-hero-meta { gap:8px 12px; flex-wrap:wrap; }
   .pfd-hero-meta span { font-size:.73rem; padding:4px 10px; }
-  .pfd-hero-tags { gap:6px; }
-  /* Card inscription — visible sous le hero sur mobile */
-  .pfd-card { position:static; border-radius:16px; }
+  .pfd-hero-tags { gap:6px; flex-wrap:wrap; }
   .pfd-card-body { padding:16px; }
   .pfd-card-price { font-size:1.6rem; }
-  /* Corps de la page */
+  .pfd-btn-start,.pfd-btn-wishlist { width:100%; justify-content:center; }
   .pfd-body { grid-template-columns:1fr; padding:20px 4% 56px; gap:20px; }
-  /* Masquer la card dupliquée dans pfd-body sur mobile (elle est déjà dans le hero) */
-  .pfd-body > .pfd-card-sticky-col { display:none; }
-  /* Objectifs en colonne unique */
+  .pfd-body > .pfd-card-sticky-col,.pfd-side-sticky { display:none; }
   .pfd-objectifs { grid-template-columns:1fr; gap:8px; }
   .pfd-obj-item { font-size:.82rem; }
-  /* Modules */
   .pfd-module-head { padding:12px 14px; }
   .pfd-module-name { font-size:.84rem; }
   .pfd-module-meta { display:none; }
   .pfd-section-title { font-size:1.05rem; }
+  .pfd-formateur { flex-direction:column; gap:12px; }
+  .pfd-form-stats { flex-wrap:wrap; gap:8px; }
+  .pfd-avis-summary { flex-direction:column; gap:14px; }
 
   /* ─── PAGE RESSOURCES ─── */
   #pr { padding-top:56px; }
