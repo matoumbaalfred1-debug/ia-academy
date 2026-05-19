@@ -8658,9 +8658,6 @@ to {
     <li><a href="#" id="nav-apropos-btn">
       À propos</a>
     </li>
-    <li><a href="#tarifs">
-      Tarifs</a>
-    </li>
   </ul>
   <div class="nav-r">
 
@@ -8836,7 +8833,6 @@ to {
   <button class="mob-nav-link" id="mob-nav-formations">Formations</button>
   <button class="mob-nav-link" id="mob-nav-ressources">Ressources</button>
   <button class="mob-nav-link" id="mob-nav-apropos">À propos</button>
-  <a href="#tarifs" class="mob-nav-link">Tarifs</a>
   <div class="mob-nav-sep"></div>
   <div class="mob-nav-btns" id="mob-nav-logged-out">
     <button class="btn-ghost" id="mob-btn-login" style="border:1.5px solid var(--border2);border-radius:50px;padding:10px;width:100%;text-align:center">Se connecter</button>
@@ -11802,11 +11798,11 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
           </div><label class="m-label" for="login-email">
           Adresse e-mail</label>
           <div class="m-field"><span class="m-field-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg></span>
-            <input type="email" id="login-email" placeholder="exemple@email.com" autocomplete="email"/>
+            <input type="email" id="login-email" placeholder="exemple@email.com" autocomplete="email" required maxlength="254"/>
           </div><label class="m-label" for="login-pwd">
           Mot de passe</label>
           <div class="m-field"><span class="m-field-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-            <input type="password" id="login-pwd" placeholder="Votre mot de passe" autocomplete="current-password"/><button class="m-eye" id="toggle-login-pwd" type="button" aria-label="Voir le mot de passe"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <input type="password" id="login-pwd" placeholder="Votre mot de passe" autocomplete="current-password" required maxlength="128"/><button class="m-eye" id="toggle-login-pwd" type="button" aria-label="Voir le mot de passe"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
           </div>
           <div class="m-row-check"><label class="m-remember">
             <input type="checkbox" checked/>
@@ -11838,25 +11834,25 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             <div><label class="m-label" for="reg-prenom">
               Prénom</label>
               <div class="m-field"><span class="m-field-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-                <input type="text" id="reg-prenom" placeholder="Votre prénom" autocomplete="given-name"/>
+                <input type="text" id="reg-prenom" placeholder="Votre prénom" autocomplete="given-name" required minlength="2" maxlength="50"/>
               </div>
             </div>
             <div><label class="m-label" for="reg-nom">
               Nom</label>
               <div class="m-field"><span class="m-field-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-                <input type="text" id="reg-nom" placeholder="Votre nom" autocomplete="family-name"/>
+                <input type="text" id="reg-nom" placeholder="Votre nom" autocomplete="family-name" maxlength="50"/>
               </div>
             </div>
           </div><label class="m-label" for="reg-email">
           Adresse e-mail</label>
           <div class="m-field"><span class="m-field-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg></span>
-            <input type="email" id="reg-email" placeholder="exemple@email.com" autocomplete="email"/>
+            <input type="email" id="reg-email" placeholder="exemple@email.com" autocomplete="email" required maxlength="254"/>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div><label class="m-label" for="reg-pwd">
               Mot de passe</label>
               <div class="m-field"><span class="m-field-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-                <input type="password" id="reg-pwd" placeholder="Mot de passe" autocomplete="new-password"/><button class="m-eye" id="toggle-reg-pwd" type="button" aria-label="Voir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <input type="password" id="reg-pwd" placeholder="Mot de passe" autocomplete="new-password" required minlength="8" maxlength="128"/><button class="m-eye" id="toggle-reg-pwd" type="button" aria-label="Voir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
             </div>
             <div><label class="m-label" for="reg-pwd2">
@@ -14122,12 +14118,23 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer ' + session.access_token
             },
-            body: JSON.stringify({ plan: plan, userId: session.user.id, email: session.user.email })
+            // userId et email lus côté serveur depuis le JWT — ne jamais faire confiance au client
+            body: JSON.stringify({ plan: plan })
           }
         );
         var data = await resp.json();
         if (data.url) {
-          window.location.href = data.url;
+          // Open Redirect : vérification stricte que l'URL appartient à Stripe
+          try {
+            var stripeUrl = new URL(data.url);
+            if(stripeUrl.protocol === 'https:' && (stripeUrl.hostname === 'checkout.stripe.com' || stripeUrl.hostname === 'billing.stripe.com')) {
+              window.location.href = stripeUrl.href;
+            } else {
+              throw new Error('URL Stripe invalide');
+            }
+          } catch(e) {
+            throw new Error('Redirection non autorisée');
+          }
         } else {
           throw new Error(data.error || 'Erreur');
         }
@@ -14157,10 +14164,13 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             .eq('id', session.user.id)
             .single();
           if (profile && window._iaUserData) {
-            window._iaUserData.plan = profile.plan || plan;
+            // Utilise uniquement le plan depuis Supabase (source fiable), jamais l'URL
+            window._iaUserData.plan = profile.plan || 'free';
           }
           if (window.syncPlanButtons) syncPlanButtons();
-          if (window.showToast) showToast('Paiement r\u00e9ussi ! \uD83C\uDF89', 'Votre plan ' + (plan||'') + ' est maintenant actif.');
+          // Nom du plan depuis Supabase uniquement, jamais depuis l'URL
+          var safePlan = (profile && profile.plan) ? profile.plan.replace(/[^a-zA-Z0-9\-_]/g,'') : '';
+          if (window.showToast) showToast('Paiement r\u00e9ussi ! \uD83C\uDF89', 'Votre plan ' + safePlan + ' est maintenant actif.');
         }
       }
     }, 500);
@@ -14320,6 +14330,15 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   );
 
   function getField(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+
+  // Helper : fetch avec timeout (protection contre blocage réseau)
+  function sbFetchTimeout(promise, ms) {
+    ms = ms || 8000;
+    var timeout = new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error('Délai dépassé. Vérifiez votre connexion.')); }, ms);
+    });
+    return Promise.race([promise, timeout]);
+  }
   function setError(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display=msg?'block':'none';}}
   function setBtnLoading(btn,loading,label){if(!btn)return;btn.disabled=loading;btn.textContent=loading?'Chargement...':label;}
   function closeAuthModal(){var o=document.getElementById('modal-auth');if(o){o.classList.remove('open');document.body.style.overflow='';}}
@@ -14335,8 +14354,26 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     if(ph) ph.textContent=prenom;
     if(wl) wl.textContent='Bienvenue, '+prenom+' \uD83D\uDC4B';
     if(av){
-      if(avatarUrl){av.innerHTML='<img src="'+avatarUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';}
-      else{av.textContent=prenom.charAt(0).toUpperCase();av.style.cssText+='font-size:16px;font-weight:700;color:#fff';}
+      if(avatarUrl){
+        try {
+          var parsed = new URL(avatarUrl);
+          var trustedHosts = ['lh3.googleusercontent.com','avatars.githubusercontent.com','pfbijoyguskdpdseunfh.supabase.co'];
+          if(parsed.protocol === 'https:' && trustedHosts.some(function(h){ return parsed.hostname === h; })){
+            var img = document.createElement('img');
+            img.src = parsed.href;
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+            img.alt = '';
+            av.innerHTML = '';
+            av.appendChild(img);
+          } else { throw new Error('untrusted'); }
+        } catch(e) {
+          av.textContent = prenom.charAt(0).toUpperCase();
+          av.style.cssText += 'font-size:16px;font-weight:700;color:#fff';
+        }
+      } else {
+        av.textContent = prenom.charAt(0).toUpperCase();
+        av.style.cssText += 'font-size:16px;font-weight:700;color:#fff';
+      }
     }
   }
 
@@ -14523,9 +14560,9 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       if(!/[^A-Za-z0-9]/.test(pwd)) pwdErrors.push('un caractère spécial (@, !, #, $...)');      if(pwdErrors.length>0){setError('reg-error','Mot de passe trop faible. Requis : '+pwdErrors.join(', ')+'.');return;}
       if(!pwd2||pwd!==pwd2){setError('reg-error','Les mots de passe ne correspondent pas.');return;}
       setBtnLoading(bReg,true,'Creer mon compte');
-      var {data,error}=await sb.auth.signUp({email,password:pwd,options:{data:{prenom,nom}}});
+      var {data,error}=await sbFetchTimeout(sb.auth.signUp({email,password:pwd,options:{data:{prenom,nom}}}));
       setBtnLoading(bReg,false,'Creer mon compte');
-      if(error){setError('reg-error',error.message);return;}
+      if(error){setError('reg-error', error.message && error.message.includes('Délai') ? error.message : 'Une erreur est survenue. Réessayez.');return;}
       if(data&&data.session){
         // Confirmation désactivée — session immédiate
         await onSignedIn(data.session);
@@ -14575,15 +14612,19 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       setError('login-error','');
       if(!email||!pwd){setError('login-error','Email et mot de passe requis.');return;}
       setBtnLoading(bLog,true,'Se connecter');
-      var {data,error}=await sb.auth.signInWithPassword({email,password:pwd});
+      var {data,error}=await sbFetchTimeout(sb.auth.signInWithPassword({email,password:pwd}));
       setBtnLoading(bLog,false,'Se connecter');
       if(error){
-        recordFailedAttempt();
-        if(isLoginLocked()){
-          setError('login-error','Trop de tentatives échouées. Compte bloqué pendant 5 minutes.');
+        if(error.message && error.message.includes('Délai')){
+          setError('login-error', error.message);
         } else {
-          var remaining = MAX_ATTEMPTS - _loginAttempts;
-          setError('login-error','Email ou mot de passe incorrect. Tentatives restantes : '+remaining+'.');
+          recordFailedAttempt();
+          if(isLoginLocked()){
+            setError('login-error','Trop de tentatives échouées. Compte bloqué pendant 5 minutes.');
+          } else {
+            var remaining = MAX_ATTEMPTS - _loginAttempts;
+            setError('login-error','Email ou mot de passe incorrect. Tentatives restantes : '+remaining+'.');
+          }
         }
         return;
       }
