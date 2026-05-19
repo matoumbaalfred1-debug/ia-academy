@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Sécurité : empêche le clickjacking et les fuites de référence -->
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Désactive l'auto-détection de contenu dangereux -->
+<meta http-equiv="X-XSS-Protection" content="1; mode=block">
 <title>IA Academy — Se Former. Innover. Transformer.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11855,14 +11861,38 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             </div>
             <div><label class="m-label" for="reg-pwd2">
               Confirmation</label>
-              <div class="m-field"><span class="m-field-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <div class="m-field" id="pwd2-field"><span class="m-field-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
                 <input type="password" id="reg-pwd2" placeholder="Confirmer" autocomplete="new-password"/><button class="m-eye" id="toggle-reg-pwd2" type="button" aria-label="Voir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
               </div>
+              <div id="pwd2-msg" style="font-size:.72rem;font-weight:600;margin-top:4px;display:none"></div>
             </div>
           </div>
-          <div class="m-hint">
-            8 caractères minimum, une majuscule et un chiffre
-          </div><label class="m-accept">
+          <!-- Checklist mot de passe style moderne -->
+          <div id="pwd-security-block" style="display:none;margin-top:8px;margin-bottom:2px">
+            <div class="pwd-rule" id="rule-len">8 caractères minimum</div>
+            <div class="pwd-rule" id="rule-upper">Une lettre majuscule</div>
+            <div class="pwd-rule" id="rule-lower">Une lettre minuscule</div>
+            <div class="pwd-rule" id="rule-digit">Un chiffre</div>
+            <div class="pwd-rule" id="rule-special">Un caractère spécial (@, !, #, $...)</div>
+          </div>
+          <style>
+          .pwd-rule {
+            display:flex;align-items:center;gap:7px;
+            font-size:.78rem;font-weight:500;
+            color:var(--text-3);padding:2px 0;
+            transition:color .2s;
+          }
+          .pwd-rule::before {
+            content:'';
+            width:7px;height:7px;border-radius:50%;flex-shrink:0;
+            background:var(--bg3);border:1.5px solid var(--text-3);
+            transition:all .25s;
+          }
+          .pwd-rule.ok { color:var(--green); }
+          .pwd-rule.ok::before {
+            background:var(--green);border-color:var(--green);
+          }
+          </style><label class="m-accept">
           <input type="checkbox"/>
           J'accepte les<a href="#">
           Conditions générales</a>
@@ -14477,8 +14507,21 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       var prenom=getField('reg-prenom'),nom=getField('reg-nom'),email=getField('reg-email'),pwd=getField('reg-pwd'),pwd2=getField('reg-pwd2');
       setError('reg-error','');
       if(!prenom||!email||!pwd){setError('reg-error','Tous les champs sont requis.');return;}
-      if(pwd.length<6){setError('reg-error','Minimum 6 caracteres.');return;}
-      if(pwd2&&pwd!==pwd2){setError('reg-error','Mots de passe differents.');return;}
+      // Validation email stricte
+      var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+      if(!emailRegex.test(email)){setError('reg-error','Adresse email invalide.');return;}
+      // Sanitisation des champs texte (suppression balises HTML)
+      prenom = prenom.replace(/<[^>]*>/g,'').trim().slice(0,50);
+      nom = nom.replace(/<[^>]*>/g,'').trim().slice(0,50);
+      if(!prenom){setError('reg-error','Prénom invalide.');return;}
+      // Validation renforcée du mot de passe
+      var pwdErrors = [];
+      if(pwd.length < 8) pwdErrors.push('8 caractères minimum');
+      if(!/[A-Z]/.test(pwd)) pwdErrors.push('une lettre majuscule');
+      if(!/[a-z]/.test(pwd)) pwdErrors.push('une lettre minuscule');
+      if(!/[0-9]/.test(pwd)) pwdErrors.push('un chiffre');
+      if(!/[^A-Za-z0-9]/.test(pwd)) pwdErrors.push('un caractère spécial (@, !, #, $...)');      if(pwdErrors.length>0){setError('reg-error','Mot de passe trop faible. Requis : '+pwdErrors.join(', ')+'.');return;}
+      if(!pwd2||pwd!==pwd2){setError('reg-error','Les mots de passe ne correspondent pas.');return;}
       setBtnLoading(bReg,true,'Creer mon compte');
       var {data,error}=await sb.auth.signUp({email,password:pwd,options:{data:{prenom,nom}}});
       setBtnLoading(bReg,false,'Creer mon compte');
@@ -14496,19 +14539,55 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     fReg.addEventListener('submit',doSignUp);
   }
 
+  // PROTECTION ANTI-BRUTE FORCE
+  var _loginAttempts = 0;
+  var _loginLockUntil = 0;
+  var MAX_ATTEMPTS = 5;
+  var LOCK_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
+  function isLoginLocked() {
+    return _loginAttempts >= MAX_ATTEMPTS && Date.now() < _loginLockUntil;
+  }
+  function getLockRemainingSeconds() {
+    return Math.ceil((_loginLockUntil - Date.now()) / 1000);
+  }
+  function recordFailedAttempt() {
+    _loginAttempts++;
+    if (_loginAttempts >= MAX_ATTEMPTS) _loginLockUntil = Date.now() + LOCK_DURATION_MS;
+  }
+  function resetAttempts() {
+    _loginAttempts = 0;
+    _loginLockUntil = 0;
+  }
+
   // CONNEXION
   var fLog=document.getElementById('form-login');
   if(fLog){
     var bLog=fLog.querySelector('.btn-modal');
     async function doSignIn(e){
       if(e)e.preventDefault();
+      // Vérification du verrouillage anti-brute force
+      if(isLoginLocked()){
+        setError('login-error','Trop de tentatives. Compte temporairement bloqué. Réessayez dans '+getLockRemainingSeconds()+' secondes.');
+        return;
+      }
       var email=getField('login-email'),pwd=getField('login-pwd');
       setError('login-error','');
       if(!email||!pwd){setError('login-error','Email et mot de passe requis.');return;}
       setBtnLoading(bLog,true,'Se connecter');
       var {data,error}=await sb.auth.signInWithPassword({email,password:pwd});
       setBtnLoading(bLog,false,'Se connecter');
-      if(error){setError('login-error','Email ou mot de passe incorrect.');return;}
+      if(error){
+        recordFailedAttempt();
+        if(isLoginLocked()){
+          setError('login-error','Trop de tentatives échouées. Compte bloqué pendant 5 minutes.');
+        } else {
+          var remaining = MAX_ATTEMPTS - _loginAttempts;
+          setError('login-error','Email ou mot de passe incorrect. Tentatives restantes : '+remaining+'.');
+        }
+        return;
+      }
+      resetAttempts();
       await onSignedIn(data.session);
       if(window.showToast) showToast('Connexion reussie !','Bon retour '+(window._iaUserData&&window._iaUserData.prenom||'')+' !');
     }
@@ -14529,15 +14608,107 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     }
   });
 
-  // DECONNEXION
+  // CHECKLIST MOT DE PASSE — style moderne
+  (function(){
+    var pwdInput = document.getElementById('reg-pwd');
+    var block    = document.getElementById('pwd-security-block');
+    if(!pwdInput || !block) return;
+
+    var rules = {
+      len:     function(p){ return p.length >= 8; },
+      upper:   function(p){ return /[A-Z]/.test(p); },
+      lower:   function(p){ return /[a-z]/.test(p); },
+      digit:   function(p){ return /[0-9]/.test(p); },
+      special: function(p){ return /[^A-Za-z0-9]/.test(p); }
+    };
+
+    pwdInput.addEventListener('input', function(){
+      var val = this.value;
+      block.style.display = val ? 'block' : 'none';
+      Object.keys(rules).forEach(function(key){
+        var el = document.getElementById('rule-'+key);
+        if(el) el.classList.toggle('ok', rules[key](val));
+      });
+      // Re-vérifier la confirmation si déjà remplie
+      var pwd2 = document.getElementById('reg-pwd2');
+      if(pwd2 && pwd2.value) pwd2.dispatchEvent(new Event('input'));
+    });
+  })();
+
+  // CONFIRMATION MOT DE PASSE — feedback rouge/vert en temps réel
+  (function(){
+    var pwd1   = document.getElementById('reg-pwd');
+    var pwd2   = document.getElementById('reg-pwd2');
+    var field2 = document.getElementById('pwd2-field');
+    var msg    = document.getElementById('pwd2-msg');
+    if(!pwd1 || !pwd2 || !field2 || !msg) return;
+
+    pwd2.addEventListener('input', function(){
+      var v1 = pwd1.value;
+      var v2 = this.value;
+      if(!v2){ 
+        field2.style.borderColor = '';
+        msg.style.display = 'none';
+        return;
+      }
+      if(v1 === v2){
+        field2.style.borderColor = 'var(--green)';
+        msg.style.display  = 'block';
+        msg.style.color    = 'var(--green)';
+        msg.textContent    = '✓ Les mots de passe correspondent';
+      } else {
+        field2.style.borderColor = 'var(--red)';
+        msg.style.display  = 'block';
+        msg.style.color    = 'var(--red)';
+        msg.textContent    = '✗ Les mots de passe ne correspondent pas';
+      }
+    });
+
+    // Remettre à zéro si le champ de confirmation est vidé
+    pwd2.addEventListener('blur', function(){
+      if(!this.value){
+        field2.style.borderColor = '';
+        msg.style.display = 'none';
+      }
+    });
+  })();
+
+  // VÉRIFICATION CGU obligatoire à l'inscription
+  (function(){
+    var fReg2 = document.getElementById('form-register');
+    if(!fReg2) return;
+    var cguCheck = fReg2.querySelector('input[type="checkbox"]');
+    var bReg2 = fReg2.querySelector('.btn-modal');
+    if(!cguCheck || !bReg2) return;
+    function syncCgu(){
+      bReg2.style.opacity = cguCheck.checked ? '1' : '0.5';
+      bReg2.style.pointerEvents = cguCheck.checked ? 'auto' : 'none';
+      bReg2.title = cguCheck.checked ? '' : 'Veuillez accepter les conditions générales';
+    }
+    cguCheck.addEventListener('change', syncCgu);
+    syncCgu();
+  })();
+
+  // DÉCONNEXION
   var bOut=document.getElementById('btn-logout');
   if(bOut) bOut.addEventListener('click',async function(e){
     e.preventDefault();
     await sb.auth.signOut();
-    if(window._iaUserData){window._iaUserData.formations=0;window._iaUserData.certifs=0;window._iaUserData.progression=0;window._iaUserData.prenom='';window._iaUserData.plan=null;}
+    // Effacement sécurisé des données sensibles en mémoire
+    if(window._iaUserData){
+      window._iaUserData.formations=0;
+      window._iaUserData.certifs=0;
+      window._iaUserData.progression=0;
+      window._iaUserData.prenom='';
+      window._iaUserData.nom='';
+      window._iaUserData.email='';
+      window._iaUserData.plan=null;
+    }
+    // Réinitialisation du compteur de tentatives
+    resetAttempts && resetAttempts();
     if(window.setAuthState) setAuthState(false);
     if(window._syncProfilStats) _syncProfilStats();
-    if(window.showToast) showToast('Deconnecte','A bientot !');
+    if(window.showToast) showToast('Déconnecté','À bientôt !');
   });
 
   // IDs des elements avec leurs noms hardcodes
@@ -14550,7 +14721,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
   // SESSION PERSISTANTE
   sb.auth.onAuthStateChange(async function(event,session){
-    console.log('[IA] authStateChange:',event);
+    // Auth state change handled securely (no logging)
     if((event==='SIGNED_IN'||event==='USER_UPDATED')&&session){
       await onSignedIn(session);
       var msg=document.getElementById('ia-confirm-msg');
