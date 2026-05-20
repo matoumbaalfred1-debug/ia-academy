@@ -14324,23 +14324,48 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function() {
+  var SITE_URL = 'https://ia-academy-lilac.vercel.app';
+
   var sb = window._sb = supabase.createClient(
     'https://pfbijoyguskdpdseunfh.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmYmlqb3lndXNrZHBkc2V1bmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTczMjcsImV4cCI6MjA5Mzc5MzMyN30.UNk-OJuZBdXIgDMvtp7ZLvpxQfs9Qrzu1aAcQwHhdyQ'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmYmlqb3lndXNrZHBkc2V1bmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTczMjcsImV4cCI6MjA5Mzc5MzMyN30.UNk-OJuZBdXIgDMvtp7ZLvpxQfs9Qrzu1aAcQwHhdyQ',
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    }
   );
 
   function getField(id){var e=document.getElementById(id);return e?e.value.trim():'';}
 
-  // Helper : fetch avec timeout (protection contre blocage réseau)
+  // Helper : fetch avec timeout
   function sbFetchTimeout(promise, ms) {
-    ms = ms || 8000;
+    ms = ms || 10000;
     var timeout = new Promise(function(_, reject){
       setTimeout(function(){ reject(new Error('Délai dépassé. Vérifiez votre connexion.')); }, ms);
     });
     return Promise.race([promise, timeout]);
   }
-  function setError(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display=msg?'block':'none';}}
-  function setBtnLoading(btn,loading,label){if(!btn)return;btn.disabled=loading;btn.textContent=loading?'Chargement...':label;}
+
+  function setError(id, msg) {
+    var e = document.getElementById(id);
+    if (e) { e.textContent = msg; e.style.display = msg ? 'block' : 'none'; }
+  }
+
+  // setBtnLoading : préserve le innerHTML (contient des SVG)
+  function setBtnLoading(btn, loading, label) {
+    if (!btn) return;
+    btn.disabled = loading;
+    if (loading) {
+      btn._savedHTML = btn.innerHTML;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .8s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Chargement...';
+    } else {
+      if (btn._savedHTML) { btn.innerHTML = btn._savedHTML; btn._savedHTML = null; }
+      else { btn.textContent = label; }
+    }
+  }
   function closeAuthModal(){var o=document.getElementById('modal-auth');if(o){o.classList.remove('open');document.body.style.overflow='';}}
 
   function updateUI(prenom, email, avatarUrl) {
@@ -14377,6 +14402,9 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     }
   }
 
+  // Flag : inscription en attente de confirmation email
+  var _waitingConfirmation = false;
+
   async function onSignedIn(session){
     var user=session.user;
     var prenom=(user.user_metadata&&user.user_metadata.prenom)||user.email.split('@')[0];
@@ -14397,6 +14425,68 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       if(window.syncPlanButtons) syncPlanButtons();
       if(window._syncProfilStats) _syncProfilStats();
     },800);
+  }
+
+  // ── EMAIL CONFIRMATION SCREEN ──
+  function showConfirmationSent(email) {
+    var fLog = document.getElementById('form-login');
+    var fReg = document.getElementById('form-register');
+    var fOtp = document.getElementById('form-otp');
+
+    // Chercher ou créer un écran de confirmation
+    var fConf = document.getElementById('form-email-confirm');
+    if (!fConf) {
+      fConf = document.createElement('div');
+      fConf.id = 'form-email-confirm';
+      fConf.innerHTML =
+        '<div class="modal-title">Vérifiez votre boîte mail</div>' +
+        '<div class="modal-underline"></div>' +
+        '<div style="text-align:center;padding:12px 0 20px">' +
+          '<div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;margin:0 auto 16px">' +
+            '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>' +
+          '</div>' +
+          '<div id="conf-email-dest" style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:8px"></div>' +
+          '<p style="font-size:.85rem;color:var(--text-2);line-height:1.6;margin-bottom:20px">Un lien de confirmation a été envoyé. Cliquez sur ce lien pour activer votre compte et vous connecter automatiquement.</p>' +
+          '<div style="background:rgba(91,33,245,0.06);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:.82rem;color:var(--text-3);text-align:left;margin-bottom:20px">' +
+            '<strong style="color:var(--text-2)">Vous ne trouvez pas l\'email ?</strong><br>Vérifiez vos spams · Le lien est valable 24h · Assurez-vous d\'avoir utilisé la bonne adresse.' +
+          '</div>' +
+          '<button id="conf-resend-btn" style="background:none;border:1.5px solid var(--border2);border-radius:50px;padding:8px 20px;font-family:inherit;font-size:.84rem;font-weight:600;color:var(--blue);cursor:pointer;transition:background .15s;margin-bottom:10px;width:100%" type="button">Renvoyer l\'email</button>' +
+          '<button id="conf-back-btn" style="background:none;border:none;font-family:inherit;font-size:.82rem;color:var(--text-3);cursor:pointer;text-decoration:underline" type="button">← Retour</button>' +
+        '</div>';
+
+      // Insérer dans le même conteneur que les autres formulaires
+      if (fReg && fReg.parentNode) fReg.parentNode.appendChild(fConf);
+
+      document.getElementById('conf-resend-btn').addEventListener('click', async function() {
+        this.disabled = true;
+        this.textContent = 'Envoi...';
+        var confEmail = this.closest('#form-email-confirm').dataset.email;
+        await sb.auth.resend({ type: 'signup', email: confEmail });
+        this.textContent = 'Email renvoyé !';
+        setTimeout(function(btn){ btn.disabled = false; btn.textContent = 'Renvoyer l\'email'; }.bind(null, this), 4000);
+      });
+
+      document.getElementById('conf-back-btn').addEventListener('click', function() {
+        fConf.style.display = 'none';
+        if (fReg) fReg.style.display = 'block';
+      });
+    }
+
+    fConf.dataset.email = email;
+    var dest = document.getElementById('conf-email-dest');
+    if (dest) dest.textContent = email;
+
+    if (fLog) fLog.style.display = 'none';
+    if (fReg) fReg.style.display = 'none';
+    if (fOtp) fOtp.style.display = 'none';
+    fConf.style.display = 'block';
+
+    // Bloquer onAuthStateChange pendant l'attente de confirmation
+    _waitingConfirmation = true;
+
+    // S'assurer que la modale reste ouverte
+    var modalAuth = document.getElementById('modal-auth');
+    if (modalAuth) { modalAuth.classList.add('open'); document.body.style.overflow = 'hidden'; }
   }
 
   // ── OTP LOGIC ──
@@ -14495,15 +14585,22 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       if(token.length < 6) { setError('otp-error','Entrez le code complet à 6 chiffres.'); return; }
       setError('otp-error','');
       setBtnLoading(this, true, 'Vérification...');
-      var { data, error } = await sb.auth.verifyOtp({
-        email: currentOtpEmail,
-        token: token,
-        type: 'email'
-      });
-      setBtnLoading(this, false, 'Vérifier le code');
-      if(error) { setError('otp-error', 'Code incorrect ou expiré. Réessayez.'); return; }
-      if(data.session) await onSignedIn(data.session);
-      if(window.showToast) showToast('Email confirmé !', 'Bienvenue, votre compte est activé.');
+      try {
+        var result = await sb.auth.verifyOtp({
+          email: currentOtpEmail,
+          token: token,
+          type: currentOtpType === 'signup' ? 'signup' : 'email'
+        });
+        var data  = result.data;
+        var error = result.error;
+        if(error) { setError('otp-error', 'Code incorrect ou expiré. Réessayez.'); return; }
+        if(data && data.session) await onSignedIn(data.session);
+        if(window.showToast) showToast('Email confirmé !', 'Bienvenue, votre compte est activé.');
+      } catch(err) {
+        setError('otp-error', 'Erreur réseau. Réessayez.');
+      } finally {
+        setBtnLoading(this, false, 'Vérifier le code');
+      }
     });
   }
 
@@ -14540,40 +14637,86 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   if(fReg){
     var bReg=fReg.querySelector('.btn-modal');
     async function doSignUp(e){
-      if(e)e.preventDefault();
-      var prenom=getField('reg-prenom'),nom=getField('reg-nom'),email=getField('reg-email'),pwd=getField('reg-pwd'),pwd2=getField('reg-pwd2');
+      if(e) e.preventDefault();
+      var prenom = getField('reg-prenom');
+      var nom    = getField('reg-nom');
+      var email  = getField('reg-email');
+      var pwd    = getField('reg-pwd');
+      var pwd2   = getField('reg-pwd2');
       setError('reg-error','');
-      if(!prenom||!email||!pwd){setError('reg-error','Tous les champs sont requis.');return;}
-      // Validation email stricte
+
+      if(!prenom||!email||!pwd){setError('reg-error','Prénom, email et mot de passe sont requis.');return;}
+
       var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
       if(!emailRegex.test(email)){setError('reg-error','Adresse email invalide.');return;}
-      // Sanitisation des champs texte (suppression balises HTML)
+
       prenom = prenom.replace(/<[^>]*>/g,'').trim().slice(0,50);
-      nom = nom.replace(/<[^>]*>/g,'').trim().slice(0,50);
+      nom    = nom.replace(/<[^>]*>/g,'').trim().slice(0,50);
       if(!prenom){setError('reg-error','Prénom invalide.');return;}
-      // Validation renforcée du mot de passe
+
       var pwdErrors = [];
       if(pwd.length < 8) pwdErrors.push('8 caractères minimum');
-      if(!/[A-Z]/.test(pwd)) pwdErrors.push('une lettre majuscule');
-      if(!/[a-z]/.test(pwd)) pwdErrors.push('une lettre minuscule');
+      if(!/[A-Z]/.test(pwd)) pwdErrors.push('une majuscule');
+      if(!/[a-z]/.test(pwd)) pwdErrors.push('une minuscule');
       if(!/[0-9]/.test(pwd)) pwdErrors.push('un chiffre');
-      if(!/[^A-Za-z0-9]/.test(pwd)) pwdErrors.push('un caractère spécial (@, !, #, $...)');      if(pwdErrors.length>0){setError('reg-error','Mot de passe trop faible. Requis : '+pwdErrors.join(', ')+'.');return;}
-      if(!pwd2||pwd!==pwd2){setError('reg-error','Les mots de passe ne correspondent pas.');return;}
-      setBtnLoading(bReg,true,'Creer mon compte');
-      var {data,error}=await sbFetchTimeout(sb.auth.signUp({email,password:pwd,options:{data:{prenom,nom}}}));
-      setBtnLoading(bReg,false,'Creer mon compte');
-      if(error){setError('reg-error', error.message && error.message.includes('Délai') ? error.message : 'Une erreur est survenue. Réessayez.');return;}
-      if(data&&data.session){
-        // Confirmation désactivée — session immédiate
-        await onSignedIn(data.session);
-        if(window.showToast) showToast('Compte créé !','Bienvenue '+prenom+' !');
-      } else if(data&&data.user){
-        // OTP envoyé — afficher le formulaire de vérification
-        showOtpForm(email, 'email');
+      if(!/[^A-Za-z0-9]/.test(pwd)) pwdErrors.push('un caractère spécial');
+      if(pwdErrors.length>0){setError('reg-error','Mot de passe trop faible : '+pwdErrors.join(', ')+'.');return;}
+      if(pwd!==pwd2){setError('reg-error','Les mots de passe ne correspondent pas.');return;}
+
+      var cguCheck = fReg.querySelector('input[type="checkbox"]');
+      if(cguCheck && !cguCheck.checked){setError('reg-error','Veuillez accepter les conditions générales.');return;}
+
+      setBtnLoading(bReg,true,'Créer mon compte');
+      try {
+        var result = await sbFetchTimeout(
+          sb.auth.signUp({
+            email: email,
+            password: pwd,
+            options: {
+              data: { prenom: prenom, nom: nom },
+              emailRedirectTo: SITE_URL
+            }
+          })
+        );
+        var data  = result.data;
+        var error = result.error;
+
+        // DEBUG — affiche la réponse brute dans le champ erreur
+        var debugMsg = 'DEBUG: error=' + JSON.stringify(error) +
+          ' | session=' + (data&&data.session?'OUI':'NON') +
+          ' | user=' + (data&&data.user?data.user.id:'NON') +
+          ' | identities=' + (data&&data.user&&data.user.identities?data.user.identities.length:'?') +
+          ' | confirmed=' + (data&&data.user?data.user.email_confirmed_at:'?');
+        setError('reg-error', debugMsg);
+
+        if(error){
+          setError('reg-error', '[ERREUR SUPABASE] ' + (error.message || JSON.stringify(error)));
+          return;
+        }
+
+        if(data && data.session){
+          _waitingConfirmation = false;
+          setError('reg-error','');
+          await onSignedIn(data.session);
+          if(window.showToast) showToast('Compte créé !', 'Bienvenue ' + prenom + ' !');
+        } else if(data && data.user){
+          if(data.user.identities && data.user.identities.length === 0){
+            setError('reg-error', 'Cette adresse email est déjà utilisée. Connectez-vous ou réinitialisez votre mot de passe.');
+          } else {
+            setError('reg-error','');
+            showConfirmationSent(email);
+          }
+        } else {
+          setError('reg-error', '[INATTENDU] data=' + JSON.stringify(data));
+        }
+      } catch(err) {
+        setError('reg-error', '[EXCEPTION] ' + (err.message || String(err)));
+      } finally {
+        setBtnLoading(bReg, false, 'Créer mon compte');
       }
     }
-    if(bReg) bReg.addEventListener('click',doSignUp);
-    fReg.addEventListener('submit',doSignUp);
+    if(bReg) bReg.addEventListener('click', doSignUp);
+    fReg.addEventListener('submit', doSignUp);
   }
 
   // PROTECTION ANTI-BRUTE FORCE
@@ -14602,35 +14745,37 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   if(fLog){
     var bLog=fLog.querySelector('.btn-modal');
     async function doSignIn(e){
-      if(e)e.preventDefault();
-      // Vérification du verrouillage anti-brute force
+      if(e) e.preventDefault();
       if(isLoginLocked()){
-        setError('login-error','Trop de tentatives. Compte temporairement bloqué. Réessayez dans '+getLockRemainingSeconds()+' secondes.');
+        setError('login-error','Trop de tentatives. Réessayez dans '+getLockRemainingSeconds()+' secondes.');
         return;
       }
-      var email=getField('login-email'),pwd=getField('login-pwd');
+      var email=getField('login-email'), pwd=getField('login-pwd');
       setError('login-error','');
       if(!email||!pwd){setError('login-error','Email et mot de passe requis.');return;}
       setBtnLoading(bLog,true,'Se connecter');
-      var {data,error}=await sbFetchTimeout(sb.auth.signInWithPassword({email,password:pwd}));
-      setBtnLoading(bLog,false,'Se connecter');
-      if(error){
-        if(error.message && error.message.includes('Délai')){
-          setError('login-error', error.message);
-        } else {
+      try {
+        var result = await sbFetchTimeout(sb.auth.signInWithPassword({email:email, password:pwd}));
+        var data  = result.data;
+        var error = result.error;
+        if(error){
           recordFailedAttempt();
           if(isLoginLocked()){
-            setError('login-error','Trop de tentatives échouées. Compte bloqué pendant 5 minutes.');
+            setError('login-error','Trop de tentatives échouées. Compte bloqué 5 minutes.');
           } else {
-            var remaining = MAX_ATTEMPTS - _loginAttempts;
-            setError('login-error','Email ou mot de passe incorrect. Tentatives restantes : '+remaining+'.');
+            var rem = MAX_ATTEMPTS - _loginAttempts;
+            setError('login-error','Email ou mot de passe incorrect. Tentatives restantes : '+rem+'.');
           }
+          return;
         }
-        return;
+        resetAttempts();
+        await onSignedIn(data.session);
+        if(window.showToast) showToast('Connexion réussie !','Bon retour '+(window._iaUserData&&window._iaUserData.prenom||'')+' !');
+      } catch(err) {
+        setError('login-error', err.message || 'Erreur réseau. Vérifiez votre connexion.');
+      } finally {
+        setBtnLoading(bLog, false, 'Se connecter');
       }
-      resetAttempts();
-      await onSignedIn(data.session);
-      if(window.showToast) showToast('Connexion reussie !','Bon retour '+(window._iaUserData&&window._iaUserData.prenom||'')+' !');
     }
     if(bLog) bLog.addEventListener('click',doSignIn);
     fLog.addEventListener('submit',doSignIn);
@@ -14760,25 +14905,42 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     if(ph&&ph.textContent.trim()==='Alex Bernard') ph.textContent='';
   }
 
-  // SESSION PERSISTANTE
-  sb.auth.onAuthStateChange(async function(event,session){
-    // Auth state change handled securely (no logging)
-    if((event==='SIGNED_IN'||event==='USER_UPDATED')&&session){
+  // SESSION PERSISTANTE + retour du lien de confirmation email
+  sb.auth.onAuthStateChange(async function(event, session){
+    if((event==='SIGNED_IN' || event==='USER_UPDATED' || event==='TOKEN_REFRESHED') && session){
+      // Retour depuis le lien de confirmation email
+      if(window.location.hash && window.location.hash.indexOf('access_token') !== -1){
+        _waitingConfirmation = false;
+        window.history.replaceState(null, '', window.location.pathname);
+        await onSignedIn(session);
+        if(window.showToast) showToast('Email confirmé !', 'Bienvenue, votre compte est activé.');
+        return;
+      }
+      // Ne pas connecter si on attend une confirmation email
+      if(_waitingConfirmation) return;
       await onSignedIn(session);
-      var msg=document.getElementById('ia-confirm-msg');
-      if(msg) msg.remove();
     }
-    if(event==='SIGNED_OUT'&&window.setAuthState) setAuthState(false);
+    if(event==='SIGNED_OUT'){
+      _waitingConfirmation = false;
+      if(window.setAuthState) setAuthState(false);
+    }
   });
 
   sb.auth.getSession().then(async function(ref){
-    var session=ref.data&&ref.data.session;
+    var session = ref.data && ref.data.session;
     if(session) await onSignedIn(session);
     else fixHardcodedNames();
   });
 
 })();
 </script>
+
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+</style>
 
 <!-- ── BURGER MENU SCRIPT ── -->
 <script>
