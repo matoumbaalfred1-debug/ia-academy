@@ -7270,7 +7270,7 @@ to { opacity:1; }
   width:100%;
   max-width:820px;
   max-height:96vh;
-  overflow:hidden;
+  overflow:visible;
   display:grid;
   grid-template-columns:1fr 1fr;
   animation:moSlideUp .28s cubic-bezier(.22,1,.36,1) both;
@@ -7296,6 +7296,8 @@ to {
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
+  border-radius:24px 0 0 24px;
+  background:#fff;
 }
 
 .modal-close {
@@ -11756,10 +11758,12 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
         <div id="form-otp" style="display:none">
           <div class="modal-title">Vérification</div>
           <div class="modal-underline"></div>
-          <div class="modal-sub" id="otp-sub">Entrez le code à 6 chiffres envoyé à votre email.</div>
+          <div class="modal-sub" id="otp-sub">Entrez le code à 8 chiffres envoyé à votre email.</div>
           <div style="margin:24px 0 8px">
-            <label class="m-label">Code de vérification</label>
+            <label class="m-label">Code de vérification (8 chiffres)</label>
             <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+              <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+              <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
               <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
               <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
               <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
@@ -11809,7 +11813,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             <input type="checkbox" checked/>
             Se souvenir de moi</label><button class="m-forgot">
             Mot de passe oublié ?</button>
-          </div><button class="btn-modal" type="button">
+          </div><button class="btn-modal" id="btn-login-submit" type="button">
           Se connecter<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
           <div class="m-divider"><span>
             ou continuer avec</span>
@@ -12687,11 +12691,29 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     document.body.style.overflow = 'hidden';
     showAuthForm(mode || 'login');
   }
+  function clearAuthForms() {
+    ['login-email','login-pwd','reg-prenom','reg-nom','reg-email','reg-pwd','reg-pwd2'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+    setError('login-error','');
+    setError('reg-error','');
+    setError('otp-error','');
+    document.querySelectorAll('.otp-digit').forEach(function(i){ i.value=''; i.classList.remove('filled'); });
+    var cgu = document.querySelector('#form-register input[type="checkbox"]');
+    if(cgu) cgu.checked = false;
+  }
+
   function closeModal() {
     overlay.classList.remove('open');
     document.body.style.overflow = '';
+    clearAuthForms();
   }
   function showAuthForm(mode) {
+    // Toujours cacher form-otp d'abord
+    var fOtp = document.getElementById('form-otp');
+    if(fOtp) fOtp.style.display = 'none';
+
     if (mode === 'register') {
       formLogin.style.display = 'none';
       formReg.style.display   = 'block';
@@ -14531,21 +14553,31 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
   function showOtpForm(email, type) {
     currentOtpEmail = email;
     currentOtpType  = type || 'signup';
+
     var sub = document.getElementById('otp-sub');
-    if(sub) sub.textContent = 'Entrez le code à 6 chiffres envoyé à '+email;
-    var fLog = document.getElementById('form-login');
-    var fReg = document.getElementById('form-register');
+    if(sub) sub.textContent = 'Entrez le code à 8 chiffres envoyé à ' + email;
+
+    // Cacher tous les formulaires dans modal-left
+    ['form-login','form-register','form-otp'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
+
+    // Afficher form-otp
     var fOtp = document.getElementById('form-otp');
-    if(fLog) fLog.style.display = 'none';
-    if(fReg) fReg.style.display = 'none';
-    if(fOtp) fOtp.style.display = 'block';
+    if(fOtp) {
+      fOtp.style.removeProperty('display');
+      fOtp.style.display = 'block';
+      var ml = fOtp.closest('.modal-left');
+      if(ml) { ml.style.overflow = 'auto'; ml.scrollTop = 0; }
+    }
+
     // Reset champs
     document.querySelectorAll('.otp-digit').forEach(function(i){ i.value=''; i.classList.remove('filled'); });
     setError('otp-error','');
-    // Lance le countdown 2 minutes
-    startOtpCountdown(120);
+    startOtpCountdown(3600);
     setTimeout(function(){
-      var first = document.querySelector('.otp-digit');
+      var first = document.querySelector('#form-otp .otp-digit');
       if(first) first.focus();
     }, 100);
   }
@@ -14589,7 +14621,7 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
     btnVerify.addEventListener('click', async function() {
       var digits = Array.from(document.querySelectorAll('.otp-digit')).map(function(i){return i.value;});
       var token  = digits.join('');
-      if(token.length < 6) { setError('otp-error','Entrez le code complet à 6 chiffres.'); return; }
+      if(token.length < 8) { setError('otp-error','Entrez le code complet à 8 chiffres.'); return; }
       setError('otp-error','');
       setBtnLoading(this, true, 'Vérification...');
       try {
@@ -14601,8 +14633,29 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
         var data  = result.data;
         var error = result.error;
         if(error) { setError('otp-error', 'Code incorrect ou expiré. Réessayez.'); return; }
-        if(data && data.session) await onSignedIn(data.session);
-        if(window.showToast) showToast('Email confirmé !', 'Bienvenue, votre compte est activé.');
+        if(data && data.session) {
+          var user = data.session.user;
+          var prenom = (user.user_metadata && user.user_metadata.prenom) || user.email.split('@')[0];
+
+          // Envoyer le mail de bienvenue via Edge Function
+          try {
+            await fetch('https://pfbijoyguskdpdseunfh.supabase.co/functions/v1/send-welcome', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + data.session.access_token
+              },
+              body: JSON.stringify({ email: user.email, prenom: prenom })
+            });
+          } catch(mailErr) { /* Silencieux si échec mail */ }
+
+          await onSignedIn(data.session);
+          var modal = document.getElementById('modal-auth');
+          if(modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
+          clearAuthForms();
+          if(window.showToast) showToast('Compte activé !', 'Bienvenue ' + prenom + ' sur IA Academy 🎉');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       } catch(err) {
         setError('otp-error', 'Erreur réseau. Réessayez.');
       } finally {
@@ -14642,7 +14695,7 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
   // INSCRIPTION
   var fReg=document.getElementById('form-register');
   if(fReg){
-    var bReg=document.getElementById('btn-register') || fReg.querySelector('.btn-modal');
+    var bReg=document.getElementById('btn-register');
     async function doSignUp(e){
       if(e) e.preventDefault();
       var prenom = getField('reg-prenom');
@@ -14703,11 +14756,9 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
             setError('reg-error', 'Cette adresse email est déjà utilisée. Connectez-vous ou réinitialisez votre mot de passe.');
           } else {
             setError('reg-error','');
-            showConfirmationSent(email);
+            showOtpForm(email, 'signup');
           }
         } else {
-          // user:null + session:null = email déjà existant (Supabase masque l'info pour sécurité)
-          // ou domaine email bloqué par Supabase
           setError('reg-error', 'Inscription impossible. Cet email est peut-être déjà utilisé — essayez de vous connecter ou utilisez une autre adresse.');
         }
       } catch(err) {
@@ -14744,7 +14795,7 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
   // CONNEXION
   var fLog=document.getElementById('form-login');
   if(fLog){
-    var bLog=fLog.querySelector('.btn-modal');
+    var bLog=document.getElementById('btn-login-submit');
     async function doSignIn(e){
       if(e) e.preventDefault();
       if(isLoginLocked()){
@@ -14924,6 +14975,7 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
     if(event==='SIGNED_OUT'){
       _waitingConfirmation = false;
       if(window.setAuthState) setAuthState(false);
+      clearAuthForms();
     }
   });
 
