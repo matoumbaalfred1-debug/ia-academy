@@ -14637,14 +14637,11 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
           var user = data.session.user;
           var prenom = (user.user_metadata && user.user_metadata.prenom) || user.email.split('@')[0];
 
-          // Envoyer le mail de bienvenue via Edge Function
+          // Envoyer le mail de bienvenue via Vercel API
           try {
-            await fetch('https://pfbijoyguskdpdseunfh.supabase.co/functions/v1/send-welcome', {
+            await fetch('/api/send-welcome', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + data.session.access_token
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: user.email, prenom: prenom })
             });
           } catch(mailErr) { /* Silencieux si échec mail */ }
