@@ -11815,6 +11815,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             Mot de passe oublié ?</button>
           </div><button class="btn-modal" id="btn-login-submit" type="button">
           Se connecter<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+          <div id="login-error" style="display:none;color:var(--red,#FF3B47);background:rgba(255,59,71,0.08);border:1px solid rgba(255,59,71,0.2);border-radius:8px;padding:10px 14px;font-size:.82rem;font-weight:500;margin-top:10px;line-height:1.5"></div>
           <div class="m-divider"><span>
             ou continuer avec</span>
           </div>
@@ -14634,24 +14635,25 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
         var error = result.error;
         if(error) { setError('otp-error', 'Code incorrect ou expiré. Réessayez.'); return; }
         if(data && data.session) {
-          var user = data.session.user;
+          var user   = data.session.user;
           var prenom = (user.user_metadata && user.user_metadata.prenom) || user.email.split('@')[0];
-
-          // Envoyer le mail de bienvenue via Vercel API
+          // Mail de bienvenue
           try {
-            await fetch('/api/send-welcome', {
+            fetch('/api/send-welcome', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: user.email, prenom: prenom })
             });
-          } catch(mailErr) { /* Silencieux si échec mail */ }
-
+          } catch(e) {}
+          // Connexion
           await onSignedIn(data.session);
           var modal = document.getElementById('modal-auth');
           if(modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
           clearAuthForms();
-          if(window.showToast) showToast('Compte activé !', 'Bienvenue ' + prenom + ' sur IA Academy 🎉');
+          if(window.showToast) showToast('Compte activé !', 'Bienvenue ' + prenom + ' sur IA Academy !');
           window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          setError('otp-error', 'Vérification échouée. Réessayez.');
         }
       } catch(err) {
         setError('otp-error', 'Erreur réseau. Réessayez.');
@@ -14802,6 +14804,11 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
       var email=getField('login-email'), pwd=getField('login-pwd');
       setError('login-error','');
       if(!email||!pwd){setError('login-error','Email et mot de passe requis.');return;}
+
+      // Validation format email
+      var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+      if(!emailRegex.test(email)){setError('login-error','Adresse email invalide. Vérifiez le format (ex: nom@exemple.com).');return;}
+
       setBtnLoading(bLog,true,'Se connecter');
       try {
         var result = await sbFetchTimeout(sb.auth.signInWithPassword({email:email, password:pwd}));
@@ -14812,13 +14819,24 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
           if(isLoginLocked()){
             setError('login-error','Trop de tentatives échouées. Compte bloqué 5 minutes.');
           } else {
-            var rem = MAX_ATTEMPTS - _loginAttempts;
-            setError('login-error','Email ou mot de passe incorrect. Tentatives restantes : '+rem+'.');
+            // Distinguer email inexistant vs mauvais mot de passe
+            var msg = error.message || '';
+            if(msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid credentials')){
+              // Supabase retourne le même message pour sécurité — on affiche un message adapté
+              setError('login-error','Email ou mot de passe incorrect. Vérifiez vos identifiants ou créez un compte.');
+            } else if(msg.toLowerCase().includes('email not confirmed')){
+              setError('login-error','Votre email n\'est pas encore confirmé. Vérifiez votre boîte mail.');
+            } else {
+              setError('login-error', msg || 'Une erreur est survenue. Réessayez.');
+            }
           }
           return;
         }
         resetAttempts();
         await onSignedIn(data.session);
+        var modal = document.getElementById('modal-auth');
+        if(modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
+        clearAuthForms();
         if(window.showToast) showToast('Connexion réussie !','Bon retour '+(window._iaUserData&&window._iaUserData.prenom||'')+' !');
       } catch(err) {
         setError('login-error', err.message || 'Erreur réseau. Vérifiez votre connexion.');
@@ -14828,6 +14846,24 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
     }
     if(bLog) bLog.addEventListener('click',doSignIn);
     fLog.addEventListener('submit',doSignIn);
+
+    // Validation format email en temps réel
+    var loginEmailField = document.getElementById('login-email');
+    if(loginEmailField){
+      loginEmailField.addEventListener('blur', function(){
+        var val = this.value.trim();
+        if(!val) return;
+        var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+        if(!emailRegex.test(val)){
+          setError('login-error','Adresse email invalide. Vérifiez le format (ex: nom@exemple.com).');
+        } else {
+          setError('login-error','');
+        }
+      });
+      loginEmailField.addEventListener('input', function(){
+        setError('login-error','');
+      });
+    }
   }
 
   // GOOGLE
