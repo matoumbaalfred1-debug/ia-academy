@@ -1848,8 +1848,15 @@ async function saveCourse() {
 
   try {
     // 1. Insérer le cours
+    const slug = iaPlan.title.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'-')
+      .replace(/^-|-$/g,'')
+      + '-' + Date.now();
+
     const {data: courseData, error: courseErr} = await sb.from('courses').insert({
       title: iaPlan.title,
+      slug: slug,
       description: iaPlan.description,
       level: iaPlan.level,
       duration: iaPlan.duration,
