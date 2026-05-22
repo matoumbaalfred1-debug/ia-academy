@@ -14909,7 +14909,9 @@ if(typeof self !== "undefined" && self.supabase) window.supabase = self.supabase
 
     return '<div class="course-row" data-level="' + level + '" data-theme="' + theme + '" data-course-id="' + (course.slug || course.id) + '">' +
       '<div class="cr-thumb" style="background:' + gradient + '">' +
-        '<span style="font-size:44px;display:inline-flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 12px rgba(0,0,0,.2))">' + emoji + '</span>' +
+        (course.image_url
+          ? '<img src="' + course.image_url + '" alt="' + title + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">'
+          : '<span style="font-size:44px;display:inline-flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 12px rgba(0,0,0,.2))">' + emoji + '</span>') +
       '</div>' +
       '<div class="cr-body">' +
         '<div class="cr-tag"><span class="cr-tag-pill">Parcours complet</span>' +
