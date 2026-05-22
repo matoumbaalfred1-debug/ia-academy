@@ -13956,17 +13956,8 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     });
   }
 
+  // Bouton "Continuer ma formation"
   setTimeout(function() {
-    document.querySelectorAll('#pf .course-row').forEach(function(row) {
-      row.style.cursor = 'pointer';
-      // Retire l'ancien listener qui ouvrait directement le reader
-      var clone = row.cloneNode(true);
-      row.parentNode.replaceChild(clone, row);
-      clone.addEventListener('click', function() {
-        window.openFormationDetail('ia-gen');
-      });
-    });
-    // Bouton "Continuer ma formation" → reader directement (déjà inscrit)
     var pfProgBtn = document.getElementById('pf-prog-btn');
     if (pfProgBtn) {
       pfProgBtn.addEventListener('click', function(e) {
