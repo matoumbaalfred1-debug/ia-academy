@@ -1870,30 +1870,7 @@ async function saveCourse() {
 
     const courseId = courseData.id;
 
-    // 2. Générer l'image avec DALL-E
-    btn.innerHTML = '<div class="mini-spin"></div> Génération image...';
-    try {
-      const imgRes = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: iaPlan.title,
-          description: iaPlan.description,
-          level: iaPlan.level
-        })
-      });
-      const imgData = await imgRes.json();
-      if (imgData.url) {
-        await sb.from('courses').update({ image_url: imgData.url }).eq('id', courseId);
-      }
-    } catch(imgErr) {
-      console.warn('Image non générée :', imgErr.message);
-      // On continue sans image, ce n'est pas bloquant
-    }
-
-    btn.innerHTML = '<div class="mini-spin"></div> Publication...';
-
-    // 3. Insérer les modules + leçons
+    // 2. Insérer les modules + leçons
     for (let mi = 0; mi < iaPlan.modules.length; mi++) {
       const mod = iaPlan.modules[mi];
       const {data: modData, error: modErr} = await sb.from('modules').insert({
@@ -1922,6 +1899,11 @@ async function saveCourse() {
     toast('Cours "' + iaPlan.title + '" publié avec succès !', 'ok');
     await loadFormations();
     renderStats();
+
+    // Reset bouton
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-width="2.2" stroke-linecap="round" d="M20 6L9 17l-5-5"/></svg> Publier';
+
     setTimeout(() => { showSection('formations', document.querySelectorAll('.nav-item')[1]); }, 1200);
 
   } catch(e) {
