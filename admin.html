@@ -1854,11 +1854,13 @@ async function saveCourse() {
       .replace(/^-|-$/g,'')
       + '-' + Date.now();
 
+    const levelMap = {'Débutant':'debutant','Intermédiaire':'intermediaire','Avancé':'avance'};
+
     const {data: courseData, error: courseErr} = await sb.from('courses').insert({
       title: iaPlan.title,
       slug: slug,
       description: iaPlan.description,
-      level: iaPlan.level,
+      level: levelMap[iaPlan.level] || 'debutant',
       duration: iaPlan.duration,
       price: iaPlan.price,
       status: 'active',
