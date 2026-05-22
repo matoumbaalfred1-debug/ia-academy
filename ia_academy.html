@@ -10062,7 +10062,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
       <div class="pfd-section">
         <div class="pfd-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Ce que vous allez apprendre</div>
-        <div class="pfd-objectifs">
+        <div class="pfd-objectifs" id="pfd-objectifs">
           <div class="pfd-obj-item"><svg class="pfd-obj-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Comprendre l'architecture Transformer et le mécanisme d'attention</div>
           <div class="pfd-obj-item"><svg class="pfd-obj-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Maîtriser le prompt engineering et les techniques avancées (CoT, few-shot)</div>
           <div class="pfd-obj-item"><svg class="pfd-obj-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>Construire un pipeline RAG complet avec LangChain et une base vectorielle</div>
@@ -13792,13 +13792,17 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       var sb = window._sb;
       if (!sb) { renderProgramme(); return; }
 
-      // Chercher le cours par slug ou id
-      var courseRes = await sb.from('courses').select('id, title, description').eq('slug', courseId).single();
-      if (courseRes.error || !courseRes.data) {
-        // Essayer par id direct
-        courseRes = await sb.from('courses').select('id, title, description').eq('id', courseId).single();
+      // Chercher le cours par slug d'abord, puis par id UUID
+      var courseRes = await sb.from('courses').select('id, title, description, objectives').eq('slug', courseId).maybeSingle();
+      if (!courseRes.data) {
+        courseRes = await sb.from('courses').select('id, title, description, objectives').eq('id', courseId).maybeSingle();
       }
-      if (courseRes.error || !courseRes.data) { renderProgramme(); return; }
+      if (!courseRes.data) {
+        var titleEl2 = document.getElementById('pfd-title');
+        if (titleEl2) titleEl2.textContent = 'Formation introuvable';
+        el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-3);font-size:.85rem">Formation introuvable dans la base de données.</div>';
+        return;
+      }
 
       var course = courseRes.data;
 
@@ -13809,6 +13813,50 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       if (titleEl) titleEl.textContent = course.title;
       if (descEl && course.description) descEl.textContent = course.description;
       if (miniTitle) miniTitle.textContent = course.title;
+
+      // Mettre à jour les objectifs
+      var objEl = document.getElementById('pfd-objectifs');
+      if (objEl) {
+        var objIco = '<svg class="pfd-obj-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>';
+
+        function renderObjectives(list) {
+          objEl.innerHTML = list.map(function(obj) {
+            return '<div class="pfd-obj-item">' + objIco + obj + '</div>';
+          }).join('');
+        }
+
+        if (course.objectives && course.objectives.length) {
+          // Déjà en base → afficher directement
+          renderObjectives(course.objectives);
+        } else {
+          // Pas d'objectifs → générer via l'IA puis sauvegarder
+          objEl.innerHTML = '<div style="color:var(--text-3);font-size:.82rem;padding:8px 0;display:flex;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;flex-shrink:0"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>Génération des objectifs...</div>';
+          try {
+            var prompt = 'Tu es un expert en formation e-learning. Pour le cours "' + course.title + '"' +
+              (course.description ? ' (' + course.description + ')' : '') +
+              ', génère exactement 6 objectifs pédagogiques concrets en français.' +
+              ' Réponds UNIQUEMENT avec un JSON valide sans markdown : ["Objectif 1", "Objectif 2", "Objectif 3", "Objectif 4", "Objectif 5", "Objectif 6"]';
+
+            var apiRes = await fetch('/api/generate-course', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: prompt, maxTokens: 400 })
+            });
+            var apiData = await apiRes.json();
+            var raw = (apiData.text || '').replace(/```json|```/g, '').trim();
+            var generated = JSON.parse(raw);
+
+            renderObjectives(generated);
+
+            // Sauvegarder en base pour ne pas régénérer la prochaine fois
+            await sb.from('courses').update({ objectives: generated }).eq('id', course.id);
+
+          } catch(objErr) {
+            console.warn('Objectifs IA:', objErr);
+            objEl.innerHTML = '<div style="color:var(--text-3);font-size:.82rem;padding:8px 0">Objectifs non disponibles.</div>';
+          }
+        }
+      }
 
       // Charger les modules avec leurs leçons
       var modRes = await sb.from('modules')
@@ -13852,25 +13900,34 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     'default':       '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 5.34L3.93 6.75M12 2v2M12 20v2M20.49 9H22M2 9h1.51"/></svg>'
   };
 
-  window.openFormationDetail = function(courseId) {
+  window.openFormationDetail = async function(courseId) {
     window._currentCourseId = courseId || 'ia-gen';
     var pfd = document.getElementById('pfd');
     if (!pfd) return;
 
-    // Update big hero icon
-    var bigIcon = document.getElementById('pfd-hero-icon');
-    if (bigIcon) bigIcon.innerHTML = courseIcons[courseId] || courseIcons['default'];
+    // Vider titre/desc/objectifs immédiatement pour éviter d'afficher les anciennes données
+    var titleEl   = document.getElementById('pfd-title');
+    var descEl    = document.getElementById('pfd-desc');
+    var miniTitle = document.getElementById('pfd-card-title-mini');
+    var objEl     = document.getElementById('pfd-objectifs');
+    if (titleEl)   titleEl.textContent   = '';
+    if (descEl)    descEl.textContent    = '';
+    if (miniTitle) miniTitle.textContent = '';
+    if (objEl)     objEl.innerHTML       = '<div style="color:var(--text-3);font-size:.82rem;padding:8px 0">Chargement...</div>';
 
-    // Update card mini icon
+    // Icônes par défaut
+    var bigIcon = document.getElementById('pfd-hero-icon');
+    if (bigIcon) bigIcon.innerHTML = courseIcons['default'];
     var cardIcon = document.getElementById('pfd-card-icon');
-    if (cardIcon) cardIcon.innerHTML = courseIconsSmall[courseId] || courseIconsSmall['default'];
+    if (cardIcon) cardIcon.innerHTML = courseIconsSmall['default'];
 
     pfd.style.display = 'block';
     void pfd.offsetHeight;
     pfd.classList.add('open');
     pfd.scrollTop = 0;
     document.body.style.overflow = 'hidden';
-    loadAndRenderProgramme(courseId);
+
+    await loadAndRenderProgramme(courseId);
   };
 
   // Mapping courseId → slug Supabase

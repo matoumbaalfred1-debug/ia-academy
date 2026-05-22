@@ -1870,7 +1870,22 @@ async function saveCourse() {
 
     const courseId = courseData.id;
 
-    // 2. Insérer les modules + leçons
+    // 2. Générer les objectifs avec l'IA
+    btn.innerHTML = '<div class="mini-spin"></div> Génération objectifs...';
+    try {
+      const objPrompt = `Tu es un expert en formation e-learning. Pour le cours "${iaPlan.title}", génère exactement 6 objectifs pédagogiques concrets et percutants en français.
+Réponds UNIQUEMENT avec un JSON valide (sans markdown) :
+["Objectif 1", "Objectif 2", "Objectif 3", "Objectif 4", "Objectif 5", "Objectif 6"]`;
+      const objRaw = await callClaude(objPrompt, 400);
+      const objectives = JSON.parse(objRaw.replace(/```json|```/g, '').trim());
+      await sb.from('courses').update({ objectives }).eq('id', courseId);
+    } catch(objErr) {
+      console.warn('Objectifs non générés :', objErr.message);
+    }
+
+    btn.innerHTML = '<div class="mini-spin"></div> Publication...';
+
+    // 3. Insérer les modules + leçons
     for (let mi = 0; mi < iaPlan.modules.length; mi++) {
       const mod = iaPlan.modules[mi];
       const {data: modData, error: modErr} = await sb.from('modules').insert({
