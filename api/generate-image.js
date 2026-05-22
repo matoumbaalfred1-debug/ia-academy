@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   if (!title) return res.status(400).json({ error: 'title requis' });
 
   const SUPABASE_URL = 'https://pfbijoyguskdpdseunfh.supabase.co';
-  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmYmlqb3lndXNrZHBkc2V1bmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTczMjcsImV4cCI6MjA5Mzc5MzMyN30.UNk-OJuZBdXIgDMvtp7ZLvpxQfs9Qrzu1aAcQwHhdyQ';
+  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 
   const prompt = `Professional e-learning course thumbnail for an online AI academy.
 Course: "${title}". ${description ? 'Topic: ' + description : ''}
