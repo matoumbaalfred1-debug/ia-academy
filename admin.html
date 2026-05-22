@@ -1236,7 +1236,7 @@ async function loadAll(){
 // ── FORMATIONS
 async function loadFormations(){
   try {
-    const {data,error} = await sb.from('formations').select('*').order('created_at',{ascending:false});
+    const {data,error} = await sb.from('courses').select('*').order('created_at',{ascending:false});
     if(error) throw new Error(error.message || 'Erreur inconnue');
     allFormations = data || [];
   } catch(e) {
@@ -1313,8 +1313,8 @@ async function saveFormation(){
     status: document.getElementById('f-status').value,
   };
   const {error} = id
-    ? await sb.from('formations').update(payload).eq('id',id)
-    : await sb.from('formations').insert(payload);
+    ? await sb.from('courses').update(payload).eq('id',id)
+    : await sb.from('courses').insert(payload);
   if(error){ toast('Erreur : '+error.message, 'err'); return; }
   toast(id ? 'Formation mise à jour' : 'Formation créée', 'ok');
   closeModal('modal-formation');
@@ -1324,7 +1324,7 @@ async function saveFormation(){
 
 async function deleteFormation(id){
   if(!confirm('Supprimer cette formation définitivement ?')) return;
-  const {error} = await sb.from('formations').delete().eq('id',id);
+  const {error} = await sb.from('courses').delete().eq('id',id);
   if(error){ toast('Erreur : '+error.message, 'err'); return; }
   toast('Formation supprimée', 'ok');
   allFormations = allFormations.filter(f => f.id != id);
