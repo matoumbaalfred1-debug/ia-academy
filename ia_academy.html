@@ -12822,7 +12822,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 (function() {
 
   /* ── DONNÉES DE COURS ── */
-  var COURSES = {
+  var COURSES = window.COURSES = {
     'ia-gen': {
       title: 'IA Générative & LLMs',
       modules: [
@@ -13258,21 +13258,37 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     courseId = courseId || 'ia-gen';
     currentCourseId = courseId;
     var course = COURSES[courseId];
-    buildLessonList(course);
-    // Find first non-done or first locked or first lesson
-    var target = allLessons.find(function(l){ return !l.lesson.done && !l.lesson.locked; });
-    if (!target) target = allLessons[0];
-    currentLessonId = target ? target.lesson.id : allLessons[0].lesson.id;
 
+    // Sécurité : si le cours n'existe pas dans COURSES, prendre le premier disponible
+    if (!course) {
+      var keys = Object.keys(COURSES);
+      if (keys.length === 0) { console.error('[openCourseReader] COURSES vide'); return; }
+      courseId = keys[0];
+      currentCourseId = courseId;
+      course = COURSES[courseId];
+    }
+
+    // 1. Afficher #pcr IMMÉDIATEMENT avant tout le reste
     var el = document.getElementById('pcr');
-    var titleEl = document.getElementById('pcr-course-title');
-    if (titleEl) titleEl.textContent = course.title;
     if (el) {
       el.style.display = 'flex';
       void el.offsetHeight;
       el.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
+
+    var titleEl = document.getElementById('pcr-course-title');
+    if (titleEl) titleEl.textContent = course.title;
+
+    // 2. Construire la liste des leçons
+    buildLessonList(course);
+    var target = allLessons.find(function(l){ return !l.lesson.done && !l.lesson.locked; });
+    if (!target) target = allLessons[0];
+    currentLessonId = target ? target.lesson.id : (allLessons[0] ? allLessons[0].lesson.id : null);
+
+    if (!currentLessonId) { console.error('[openCourseReader] Aucune leçon trouvée'); return; }
+
+    // 3. Rendu sidebar + contenu
     renderSidebar(course);
     renderLesson(currentLessonId);
   };
@@ -13837,44 +13853,34 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   };
 
   async function enrollAndStart(courseId) {
+    // 1. Ferme le panel détail immédiatement
     var pfd = document.getElementById('pfd');
-    if (pfd) { pfd.classList.remove('open'); pfd.style.display = 'none'; }
+    if (pfd) { pfd.classList.remove('open'); pfd.style.display = 'none'; document.body.style.overflow = ''; }
 
-    // Enrollment Supabase
-    var session = (await window._sb.auth.getSession()).data.session;
-    if (session) {
-      var slug = COURSE_SLUGS[courseId] || courseId;
-      // Récupère l'UUID du cours depuis le slug
-      var { data: course } = await window._sb
-        .from('courses')
-        .select('id')
-        .eq('slug', slug)
-        .single();
-
-      if (course) {
-        // Upsert enrollment (ignore si déjà inscrit)
-        var { error } = await window._sb
-          .from('enrollments')
-          .upsert(
-            { user_id: session.user.id, course_id: course.id },
-            { onConflict: 'user_id,course_id' }
-          );
-
-        if (!error) {
-          // Met à jour le compteur formations
-          if (window._iaUserData) {
-            window._iaUserData.formations = (window._iaUserData.formations || 0) + 1;
-          }
-          if (window._syncProfilStats) _syncProfilStats();
-          if (window.showToast) showToast('Inscription confirmée !', 'Bonne formation !');
-        }
-      }
-    }
-
-    // Ouvre le course reader
+    // 2. Ouvre le course reader IMMÉDIATEMENT — sans attendre Supabase
     if (window.openCourseReader) window.openCourseReader(courseId);
-  }
 
+    // 3. Enrollment Supabase en arrière-plan (non-bloquant)
+    try {
+      if (!window._sb) return;
+      var sbSession = (await window._sb.auth.getSession()).data.session;
+      if (!sbSession) return;
+      var slug = COURSE_SLUGS[courseId] || courseId;
+      var { data: courseRow } = await window._sb.from('courses').select('id').eq('slug', slug).single();
+      if (!courseRow) return;
+      var { error: enrollErr } = await window._sb.from('enrollments').upsert(
+        { user_id: sbSession.user.id, course_id: courseRow.id },
+        { onConflict: 'user_id,course_id' }
+      );
+      if (!enrollErr) {
+        if (window._iaUserData) window._iaUserData.formations = (window._iaUserData.formations || 0) + 1;
+        if (window._syncProfilStats) _syncProfilStats();
+        if (window.showToast) showToast('Inscription confirmée !', 'Bonne formation !');
+      }
+    } catch(err) {
+      console.warn('[enrollAndStart] Supabase non-bloquant:', err);
+    }
+  }
   var btnStart = document.getElementById('pfd-btn-start');
   if (btnStart) {
     btnStart.addEventListener('click', async function(e) {
