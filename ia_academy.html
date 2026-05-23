@@ -13478,7 +13478,9 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     document.querySelectorAll('#pf .course-row').forEach(function(row) {
       row.style.cursor = 'pointer';
       row.addEventListener('click', function() {
-        window.openCourseReader('ia-gen');
+        var cid = row.dataset.courseId || 'ia-gen';
+        if (window.openFormationDetail) window.openFormationDetail(cid);
+        else window.openCourseReader(cid);
       });
     });
 
@@ -13486,7 +13488,9 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     document.querySelectorAll('.pd-course-resume, .pd-course-row .btn-continue-pf').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        window.openCourseReader('ia-gen');
+        var row = btn.closest('[data-course-id]');
+        var cid = (row && row.dataset.courseId) || 'ia-gen';
+        window.openCourseReader(cid);
       });
     });
   }
