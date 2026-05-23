@@ -12822,45 +12822,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 (function() {
 
   /* ── DONNÉES DE COURS ── */
-  var COURSES = window.COURSES = {
-    'ia-gen': {
-      title: 'IA Générative & LLMs',
-      modules: [
-        {
-          id:'m1', name:'Introduction aux LLMs', done:false,
-          lessons:[
-            { id:'l1', name:'Qu\'est-ce qu\'un LLM ?',     type:'text', dur:'8 min',  done:false, content:'text' },
-            { id:'l2', name:'Histoire des transformers',    type:'text',  dur:'12 min', done:false, content:'text'  },
-            { id:'l3', name:'Quiz : Les bases',             type:'quiz',  dur:'5 min',  done:false, content:'quiz'  }
-          ]
-        },
-        {
-          id:'m2', name:'Prompt Engineering', done:false,
-          lessons:[
-            { id:'l4', name:'Anatomie d\'un bon prompt',    type:'text', dur:'11 min', done:false, content:'text' },
-            { id:'l5', name:'Techniques avancées',          type:'text',  dur:'15 min', done:false, content:'text'  },
-            { id:'l6', name:'Few-shot & chain-of-thought',  type:'text', dur:'9 min',  done:false, content:'text' },
-            { id:'l7', name:'Quiz : Prompting',             type:'quiz',  dur:'6 min',  done:false, content:'quiz'  }
-          ]
-        },
-        {
-          id:'m3', name:'RAG & Agents', done:false,
-          lessons:[
-            { id:'l8',  name:'Comprendre le RAG',           type:'text', dur:'13 min', done:false, content:'text', locked:true },
-            { id:'l9',  name:'Construire un pipeline RAG',  type:'text',  dur:'18 min', done:false, content:'text',  locked:true },
-            { id:'l10', name:'Introduction aux agents IA',  type:'text', dur:'14 min', done:false, content:'text', locked:true }
-          ]
-        },
-        {
-          id:'m4', name:'Déploiement & Production', done:false,
-          lessons:[
-            { id:'l11', name:'APIs et intégrations',        type:'text',  dur:'10 min', done:false, content:'text',  locked:true },
-            { id:'l12', name:'Projet final : Build your AI',type:'text', dur:'22 min', done:false, content:'text', locked:true }
-          ]
-        }
-      ]
-    }
-  };
+  var COURSES = window.COURSES = {}; // Chargé dynamiquement depuis Supabase
 
   /* ── CONTENU DES LEÇONS ── */
   var LESSON_CONTENT = {
@@ -13266,16 +13228,26 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     'data':                'data'
   };
 
+  // Mapping clés locales → slugs Supabase
+  var _LOCAL_TO_SLUG = {
+    'ia-gen':        'ia-generative-llms',
+    'automatisation':'automatisation-n8n',
+    'fondamentaux':  'fondamentaux-ia',
+    'data':          'data-science-python'
+  };
+
   window.openCourseReader = function(courseId) {
     courseId = courseId || 'ia-gen';
     // Résoudre le slug Supabase vers la clé locale
     var localKey = _SLUG_MAP[courseId] || courseId;
+    // Slug Supabase correspondant
+    var sbSlug = _LOCAL_TO_SLUG[localKey] || localKey;
     currentCourseId = localKey;
     var course = COURSES[localKey];
 
-    // Si toujours pas trouvé, charger depuis Supabase puis ouvrir
+    // Si pas encore dans COURSES, charger depuis Supabase
     if (!course) {
-      // Créer un placeholder immédiat pour ouvrir le reader sans délai
+      // Placeholder immédiat
       course = {
         title: 'Chargement...',
         modules: [{ id:'m-load', name:'Chargement...', done:false,
@@ -13284,32 +13256,54 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       };
       COURSES[localKey] = course;
       // Charger le vrai contenu en arrière-plan
-      (async function() {
+      (async function(lk, slug) {
         try {
           var sb = window._sb;
           if (!sb) return;
-          var slugToFetch = courseId; // le slug original Supabase
-          var courseRes = await sb.from('courses').select('id,title,description').eq('slug', slugToFetch).maybeSingle();
-          if (!courseRes.data) return;
+          // Chercher par slug d'abord, puis par id
+          var courseRes = await sb.from('courses').select('id,title,description').eq('slug', slug).maybeSingle();
+          if (!courseRes.data) {
+            courseRes = await sb.from('courses').select('id,title,description').eq('id', slug).maybeSingle();
+          }
+          if (!courseRes.data) {
+            console.warn('[openCourseReader] cours introuvable pour slug:', slug);
+            return;
+          }
           var modRes = await sb.from('modules')
             .select('id,title,position,lessons(id,title,position,type,duration)')
             .eq('course_id', courseRes.data.id)
             .order('position', { ascending: true });
-          var modules = (modRes.data || []).map(function(m, mi) {
+          var rawMods = modRes.data || [];
+          var modules = rawMods.map(function(m, mi) {
+            var lessons = (m.lessons || [])
+              .sort(function(a,b){ return (a.position||0)-(b.position||0); })
+              .map(function(l, li) {
+                return {
+                  id: 'sb-'+l.id,
+                  name: l.title || ('Leçon '+(li+1)),
+                  type: l.type === 'quiz' ? 'quiz' : 'text',
+                  dur:  l.duration || '10 min',
+                  done: false,
+                  content: l.type === 'quiz' ? 'quiz' : 'text'
+                };
+              });
             return {
-              id: 'sb-'+m.id, name: m.title || ('Module '+(mi+1)), done: false,
-              lessons: (m.lessons||[]).sort(function(a,b){return a.position-b.position;}).map(function(l,li){
-                return { id:'sb-'+l.id, name:l.title||('Leçon '+(li+1)), type:l.type==='quiz'?'quiz':'text',
-                  dur:l.duration||'10 min', done:false, content:l.type==='quiz'?'quiz':'text' };
-              })
+              id: 'sb-'+m.id,
+              name: m.title || ('Module '+(mi+1)),
+              done: false,
+              lessons: lessons.length ? lessons : [{ id:'sb-'+m.id+'-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
             };
           });
-          if (!modules.length) return;
-          COURSES[localKey] = { title: courseRes.data.title, modules: modules };
-          // Rafraîchir le reader
-          if (window.openCourseReader) window.openCourseReader(localKey);
-        } catch(e) { console.warn('openCourseReader async load:', e); }
-      })();
+          if (!modules.length) {
+            modules = [{ id:'sb-default', name: courseRes.data.title, done:false,
+              lessons:[{ id:'sb-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
+            }];
+          }
+          COURSES[lk] = { title: courseRes.data.title, modules: modules };
+          // Rafraîchir le reader avec le vrai contenu
+          if (window.openCourseReader) window.openCourseReader(lk);
+        } catch(e) { console.warn('[openCourseReader] async load error:', e); }
+      })(localKey, sbSlug);
     }
 
     // 1. Afficher #pcr IMMÉDIATEMENT avant tout le reste
