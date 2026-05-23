@@ -9983,11 +9983,11 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             <span class="pcd-card-promo" id="pcd-promo">Inclus dans votre plan</span>
           </div>
           <div class="pcd-card-price-old" id="pcd-price-old">ou 249€ accès à vie</div>
-          <button class="pcd-btn-start" id="pcd-btn-start">
+          <button type="button" class="pcd-btn-start" id="pcd-btn-start">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Commencer la formation
           </button>
-          <button class="pcd-btn-try" id="pcd-btn-try">Essayer gratuitement (3 leçons)</button>
+          <button type="button" class="pcd-btn-try" id="pcd-btn-try">Essayer gratuitement (3 leçons)</button>
           <div class="pcd-card-guarantee">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Satisfait ou remboursé 30 jours
@@ -10137,7 +10137,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             Offre limitée — expire dans 2 jours
           </div>
-          <button class="pfd-btn-start" id="pfd-btn-start">
+          <button type="button" class="pfd-btn-start" id="pfd-btn-start">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Commencer la formation
           </button>
@@ -13877,7 +13877,8 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
   var btnStart = document.getElementById('pfd-btn-start');
   if (btnStart) {
-    btnStart.addEventListener('click', async function() {
+    btnStart.addEventListener('click', async function(e) {
+      e.preventDefault();
       var isConnected = window._iaConnected;
       if (!isConnected) {
         var overlay = document.getElementById('modal-auth');
@@ -13926,6 +13927,61 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     }
   }, 400);
 
+})();
+</script>
+
+<!-- ── FIX BOUTONS PAGE DÉTAIL COURS (pcd) ── -->
+<script>
+(function() {
+  function initPcdButtons() {
+    var btnStart = document.getElementById('pcd-btn-start');
+    var btnTry   = document.getElementById('pcd-btn-try');
+
+    if (btnStart && !btnStart._pcdInit) {
+      btnStart._pcdInit = true;
+      btnStart.addEventListener('click', async function(e) {
+        e.preventDefault();
+        var courseId = window._currentCourseId || 'ia-gen';
+        if (!window._iaConnected) {
+          var overlay = document.getElementById('modal-auth');
+          if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+          var goReg = document.getElementById('go-register');
+          if (goReg) goReg.click();
+          return;
+        }
+        // Ferme le panel pcd
+        var pcd = document.getElementById('pcd');
+        if (pcd) { pcd.classList.remove('open'); pcd.style.display = 'none'; document.body.style.overflow = ''; }
+        // Lance enrollment + reader
+        if (typeof enrollAndStart === 'function') {
+          await enrollAndStart(courseId);
+        } else if (window.openCourseReader) {
+          window.openCourseReader(courseId);
+        }
+      });
+    }
+
+    if (btnTry && !btnTry._pcdInit) {
+      btnTry._pcdInit = true;
+      btnTry.addEventListener('click', function(e) {
+        e.preventDefault();
+        var courseId = window._currentCourseId || 'ia-gen';
+        // Ferme le panel pcd
+        var pcd = document.getElementById('pcd');
+        if (pcd) { pcd.classList.remove('open'); pcd.style.display = 'none'; document.body.style.overflow = ''; }
+        // Ouvre directement le reader en mode essai
+        if (window.openCourseReader) window.openCourseReader(courseId);
+      });
+    }
+  }
+
+  // Init au chargement + retry pour s'assurer que les boutons existent
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPcdButtons);
+  } else {
+    initPcdButtons();
+    setTimeout(initPcdButtons, 500);
+  }
 })();
 </script>
 
