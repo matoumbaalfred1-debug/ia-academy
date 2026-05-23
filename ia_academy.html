@@ -13254,18 +13254,33 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   }
 
   /* ── OPEN / CLOSE ── */
+  // Mapping slugs Supabase → clés locales COURSES
+  var SLUG_TO_LOCAL = {
+    'ia-generative-llms':    'ia-gen',
+    'automatisation-n8n':    'automatisation',
+    'fondamentaux-ia':       'fondamentaux',
+    'data-science-python':   'data',
+    // aussi accepter les clés locales directement
+    'ia-gen':         'ia-gen',
+    'automatisation': 'automatisation',
+    'fondamentaux':   'fondamentaux',
+    'data':           'data'
+  };
+
   window.openCourseReader = function(courseId) {
     courseId = courseId || 'ia-gen';
-    currentCourseId = courseId;
-    var course = COURSES[courseId];
+    // Résoudre le slug Supabase vers la clé locale si nécessaire
+    var localKey = SLUG_TO_LOCAL[courseId] || courseId;
+    currentCourseId = localKey;
+    var course = COURSES[localKey];
 
-    // Sécurité : si le cours n'existe pas dans COURSES, prendre le premier disponible
+    // Sécurité : si le cours n'existe toujours pas dans COURSES, prendre le premier disponible
     if (!course) {
       var keys = Object.keys(COURSES);
       if (keys.length === 0) { console.error('[openCourseReader] COURSES vide'); return; }
-      courseId = keys[0];
-      currentCourseId = courseId;
-      course = COURSES[courseId];
+      localKey = keys[0];
+      currentCourseId = localKey;
+      course = COURSES[localKey];
     }
 
     // 1. Afficher #pcr IMMÉDIATEMENT avant tout le reste
@@ -13850,10 +13865,15 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
   // Mapping courseId → slug Supabase
   var COURSE_SLUGS = {
-    'ia-gen':        'ia-generative-llms',
-    'automatisation':'automatisation-n8n',
-    'fondamentaux':  'fondamentaux-ia',
-    'data':          'data-science-python'
+    'ia-gen':              'ia-generative-llms',
+    'automatisation':      'automatisation-n8n',
+    'fondamentaux':        'fondamentaux-ia',
+    'data':                'data-science-python',
+    // Si le slug Supabase est passé directement, le retourner tel quel
+    'ia-generative-llms':  'ia-generative-llms',
+    'automatisation-n8n':  'automatisation-n8n',
+    'fondamentaux-ia':     'fondamentaux-ia',
+    'data-science-python': 'data-science-python'
   };
 
   async function enrollAndStart(courseId) {
