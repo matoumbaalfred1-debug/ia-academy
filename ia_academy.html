@@ -13932,24 +13932,39 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   }
 
   async function enrollAndStart(courseId) {
-    // 1. Ferme le panel détail immédiatement
-    var pfd = document.getElementById('pfd');
-    if (pfd) { pfd.classList.remove('open'); pfd.style.display = 'none'; document.body.style.overflow = ''; }
-
-    // 2. Résoudre la clé locale
+    // 1. Résoudre la clé locale AVANT tout
     var localKey = SLUG_TO_LOCAL[courseId] || courseId;
 
-    // 3. Si le cours n'est pas encore dans COURSES, le charger depuis Supabase
+    // 2. Si le cours n'est pas dans COURSES, créer un placeholder immédiat
     if (!COURSES[localKey]) {
-      var built = await buildCourseFromSupabase(courseId);
+      COURSES[localKey] = {
+        title: localKey,
+        modules: [{
+          id: 'loading', name: 'Chargement...', done: false,
+          lessons: [{ id: 'l-loading', name: 'Chargement du contenu...', type: 'text', dur: '...', done: false, content: 'text' }]
+        }]
+      };
+      window.COURSES = COURSES;
+    }
+
+    // 3. Ferme le panel pfd ET ouvre le reader IMMÉDIATEMENT (pas d'attente async)
+    var pfd = document.getElementById('pfd');
+    if (pfd) { pfd.classList.remove('open'); pfd.style.display = 'none'; }
+    var pcd = document.getElementById('pcd');
+    if (pcd) { pcd.classList.remove('open'); pcd.style.display = 'none'; }
+    document.body.style.overflow = 'hidden';
+
+    if (window.openCourseReader) window.openCourseReader(localKey);
+
+    // 4. Charger le vrai contenu Supabase en arrière-plan et mettre à jour
+    buildCourseFromSupabase(courseId).then(function(built) {
       if (built) {
         COURSES[localKey] = built;
         window.COURSES = COURSES;
+        // Rafraîchir le reader si c'est toujours ce cours qui est affiché
+        if (window.openCourseReader) window.openCourseReader(localKey);
       }
-    }
-
-    // 4. Ouvre le course reader avec la bonne clé
-    if (window.openCourseReader) window.openCourseReader(localKey);
+    });
 
     // 5. Enrollment Supabase en arrière-plan (non-bloquant)
     try {
