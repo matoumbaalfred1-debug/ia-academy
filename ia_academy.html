@@ -13255,7 +13255,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
   /* ── OPEN / CLOSE ── */
   // Mapping slugs Supabase → clés locales COURSES
-  var SLUG_TO_LOCAL = {
+  var SLUG_TO_LOCAL = window.SLUG_TO_LOCAL = {
     'ia-generative-llms':    'ia-gen',
     'automatisation-n8n':    'automatisation',
     'fondamentaux-ia':       'fondamentaux',
@@ -13864,7 +13864,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   };
 
   // Mapping courseId → slug Supabase
-  var COURSE_SLUGS = {
+  var COURSE_SLUGS = window.COURSE_SLUGS = {
     'ia-gen':              'ia-generative-llms',
     'automatisation':      'automatisation-n8n',
     'fondamentaux':        'fondamentaux-ia',
@@ -13877,7 +13877,8 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   };
 
   async function buildCourseFromSupabase(courseId) {
-    var slug = COURSE_SLUGS[courseId] || courseId;
+    var _COURSE_SLUGS = window.COURSE_SLUGS || {};
+    var slug = _COURSE_SLUGS[courseId] || courseId;
     var sb = window._sb;
     if (!sb) return null;
     try {
@@ -13933,18 +13934,20 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
   async function enrollAndStart(courseId) {
     // 1. Résoudre la clé locale AVANT tout
-    var localKey = SLUG_TO_LOCAL[courseId] || courseId;
+    var _SLUG_TO_LOCAL = window.SLUG_TO_LOCAL || {};
+    var _COURSES = window.COURSES || {};
+    var localKey = _SLUG_TO_LOCAL[courseId] || courseId;
 
     // 2. Si le cours n'est pas dans COURSES, créer un placeholder immédiat
-    if (!COURSES[localKey]) {
-      COURSES[localKey] = {
+    if (!_COURSES[localKey]) {
+      _COURSES[localKey] = {
         title: localKey,
         modules: [{
           id: 'loading', name: 'Chargement...', done: false,
           lessons: [{ id: 'l-loading', name: 'Chargement du contenu...', type: 'text', dur: '...', done: false, content: 'text' }]
         }]
       };
-      window.COURSES = COURSES;
+      window.COURSES = _COURSES;
     }
 
     // 3. Ferme le panel pfd ET ouvre le reader IMMÉDIATEMENT (pas d'attente async)
@@ -13959,8 +13962,9 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     // 4. Charger le vrai contenu Supabase en arrière-plan et mettre à jour
     buildCourseFromSupabase(courseId).then(function(built) {
       if (built) {
-        COURSES[localKey] = built;
-        window.COURSES = COURSES;
+        var c = window.COURSES || {};
+        c[localKey] = built;
+        window.COURSES = c;
         // Rafraîchir le reader si c'est toujours ce cours qui est affiché
         if (window.openCourseReader) window.openCourseReader(localKey);
       }
