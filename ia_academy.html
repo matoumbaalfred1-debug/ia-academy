@@ -13876,15 +13876,82 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     'data-science-python': 'data-science-python'
   };
 
+  async function buildCourseFromSupabase(courseId) {
+    var slug = COURSE_SLUGS[courseId] || courseId;
+    var sb = window._sb;
+    if (!sb) return null;
+    try {
+      var courseRes = await sb.from('courses').select('id, title, description').eq('slug', slug).maybeSingle();
+      if (!courseRes.data) {
+        courseRes = await sb.from('courses').select('id, title, description').eq('id', courseId).maybeSingle();
+      }
+      if (!courseRes.data) return null;
+      var course = courseRes.data;
+
+      var modRes = await sb.from('modules')
+        .select('id, title, position, lessons(id, title, position, type, duration)')
+        .eq('course_id', course.id)
+        .order('position', { ascending: true });
+
+      var modules = [];
+      if (modRes.data && modRes.data.length) {
+        modules = modRes.data.map(function(m, mi) {
+          var lessons = (m.lessons || [])
+            .sort(function(a,b){ return a.position - b.position; })
+            .map(function(l, li) {
+              return {
+                id:      'sb-' + m.id + '-' + l.id,
+                name:    l.title || ('Leçon ' + (li+1)),
+                type:    l.type === 'quiz' ? 'quiz' : 'text',
+                dur:     l.duration || '10 min',
+                done:    false,
+                content: l.type === 'quiz' ? 'quiz' : 'text'
+              };
+            });
+          return {
+            id:      'sbm-' + m.id,
+            name:    m.title || ('Module ' + (mi+1)),
+            done:    false,
+            lessons: lessons
+          };
+        });
+      }
+
+      if (!modules.length) {
+        modules = [{
+          id: 'sbm-default', name: course.title, done: false,
+          lessons: [{ id:'sb-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
+        }];
+      }
+
+      return { title: course.title, modules: modules };
+    } catch(e) {
+      console.warn('[buildCourseFromSupabase]', e);
+      return null;
+    }
+  }
+
   async function enrollAndStart(courseId) {
     // 1. Ferme le panel détail immédiatement
     var pfd = document.getElementById('pfd');
     if (pfd) { pfd.classList.remove('open'); pfd.style.display = 'none'; document.body.style.overflow = ''; }
 
-    // 2. Ouvre le course reader IMMÉDIATEMENT — sans attendre Supabase
-    if (window.openCourseReader) window.openCourseReader(courseId);
+    // 2. Résoudre la clé locale
+    var localKey = SLUG_TO_LOCAL[courseId] || courseId;
 
-    // 3. Enrollment Supabase en arrière-plan (non-bloquant)
+    // 3. Si le cours n'est pas encore dans COURSES, le charger depuis Supabase
+    if (!COURSES[localKey]) {
+      var built = await buildCourseFromSupabase(courseId);
+      if (built) {
+        COURSES[localKey] = built;
+        window.COURSES = COURSES;
+      }
+    }
+
+    // 4. Ouvre le course reader avec la bonne clé
+    if (window.openCourseReader) window.openCourseReader(localKey);
+
+    // 5. Enrollment Supabase en arrière-plan (non-bloquant)
     try {
       if (!window._sb) return;
       var sbSession = (await window._sb.auth.getSession()).data.session;
