@@ -12822,94 +12822,7 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 (function() {
 
   /* ── DONNÉES DE COURS ── */
-  var COURSES = window.COURSES = {
-    'ia-gen': {
-      title: 'IA Générative & LLMs',
-      modules: [
-        { id:'m1', name:'Introduction aux LLMs', done:false, lessons:[
-            { id:'l1', name:"Qu'est-ce qu'un LLM ?",          type:'text', dur:'8 min',  done:false, content:'text' },
-            { id:'l2', name:'Histoire des transformers',       type:'text', dur:'12 min', done:false, content:'text' },
-            { id:'l3', name:'Quiz : Les bases',                type:'quiz', dur:'5 min',  done:false, content:'quiz' }
-        ]},
-        { id:'m2', name:'Prompt Engineering', done:false, lessons:[
-            { id:'l4', name:"Anatomie d'un bon prompt",        type:'text', dur:'11 min', done:false, content:'text' },
-            { id:'l5', name:'Techniques avancées',             type:'text', dur:'15 min', done:false, content:'text' },
-            { id:'l6', name:'Few-shot & chain-of-thought',     type:'text', dur:'9 min',  done:false, content:'text' },
-            { id:'l7', name:'Quiz : Prompting',                type:'quiz', dur:'6 min',  done:false, content:'quiz' }
-        ]},
-        { id:'m3', name:'RAG & Agents', done:false, lessons:[
-            { id:'l8',  name:'Comprendre le RAG',              type:'text', dur:'13 min', done:false, content:'text', locked:true },
-            { id:'l9',  name:'Construire un pipeline RAG',     type:'text', dur:'18 min', done:false, content:'text', locked:true },
-            { id:'l10', name:'Introduction aux agents IA',     type:'text', dur:'14 min', done:false, content:'text', locked:true }
-        ]},
-        { id:'m4', name:'Déploiement & Production', done:false, lessons:[
-            { id:'l11', name:'APIs et intégrations',           type:'text', dur:'10 min', done:false, content:'text', locked:true },
-            { id:'l12', name:"Projet final : Build your AI",   type:'text', dur:'22 min', done:false, content:'text', locked:true }
-        ]}
-      ]
-    },
-    'automatisation': {
-      title: 'Automatisation No-Code & n8n',
-      modules: [
-        { id:'a1', name:"Bases de l'automatisation", done:false, lessons:[
-            { id:'a1l1', name:'Pourquoi automatiser ?',             type:'text', dur:'7 min',  done:false, content:'text' },
-            { id:'a1l2', name:'Les outils no-code en 2025',         type:'text', dur:'10 min', done:false, content:'text' },
-            { id:'a1l3', name:'Quiz : Automatisation 101',          type:'quiz', dur:'5 min',  done:false, content:'quiz' }
-        ]},
-        { id:'a2', name:'n8n — Prise en main', done:false, lessons:[
-            { id:'a2l1', name:'Installation et interface n8n',      type:'text', dur:'12 min', done:false, content:'text' },
-            { id:'a2l2', name:'Votre premier workflow',             type:'text', dur:'14 min', done:false, content:'text' },
-            { id:'a2l3', name:'Triggers, nodes et connections',     type:'text', dur:'11 min', done:false, content:'text', locked:true },
-            { id:'a2l4', name:'Quiz : n8n Essentials',              type:'quiz', dur:'6 min',  done:false, content:'quiz', locked:true }
-        ]},
-        { id:'a3', name:'Workflows avancés', done:false, lessons:[
-            { id:'a3l1', name:'Intégrer des APIs REST',             type:'text', dur:'15 min', done:false, content:'text', locked:true },
-            { id:'a3l2', name:"Automatiser avec l'IA (GPT/Claude)", type:'text', dur:'18 min', done:false, content:'text', locked:true },
-            { id:'a3l3', name:'Projet : Pipeline email intelligent', type:'text', dur:'20 min', done:false, content:'text', locked:true }
-        ]}
-      ]
-    },
-    'fondamentaux': {
-      title: "Fondamentaux de l'IA",
-      modules: [
-        { id:'f1', name:"Introduction à l'Intelligence Artificielle", done:false, lessons:[
-            { id:'f1l1', name:"Histoire et évolution de l'IA",      type:'text', dur:'9 min',  done:false, content:'text' },
-            { id:'f1l2', name:'Machine Learning vs Deep Learning',   type:'text', dur:'11 min', done:false, content:'text' },
-            { id:'f1l3', name:'Quiz : Concepts fondamentaux',        type:'quiz', dur:'5 min',  done:false, content:'quiz' }
-        ]},
-        { id:'f2', name:"Mathématiques pour l'IA", done:false, lessons:[
-            { id:'f2l1', name:'Algèbre linéaire essentielle',        type:'text', dur:'13 min', done:false, content:'text' },
-            { id:'f2l2', name:'Probabilités et statistiques',        type:'text', dur:'12 min', done:false, content:'text' },
-            { id:'f2l3', name:'Gradient descent intuition',          type:'text', dur:'10 min', done:false, content:'text', locked:true }
-        ]},
-        { id:'f3', name:'Réseaux de neurones', done:false, lessons:[
-            { id:'f3l1', name:'Le perceptron et ses couches',        type:'text', dur:'14 min', done:false, content:'text', locked:true },
-            { id:'f3l2', name:'Backpropagation expliquée',           type:'text', dur:'16 min', done:false, content:'text', locked:true },
-            { id:'f3l3', name:'Quiz : Deep Learning',                type:'quiz', dur:'6 min',  done:false, content:'quiz', locked:true }
-        ]}
-      ]
-    },
-    'data': {
-      title: 'Data Science avec Python',
-      modules: [
-        { id:'d1', name:'Python pour la Data', done:false, lessons:[
-            { id:'d1l1', name:'Environnement Python & Jupyter',      type:'text', dur:'8 min',  done:false, content:'text' },
-            { id:'d1l2', name:'NumPy et Pandas essentiels',          type:'text', dur:'13 min', done:false, content:'text' },
-            { id:'d1l3', name:'Quiz : Python Data',                  type:'quiz', dur:'5 min',  done:false, content:'quiz' }
-        ]},
-        { id:'d2', name:'Analyse & Visualisation', done:false, lessons:[
-            { id:'d2l1', name:'Exploration de données (EDA)',         type:'text', dur:'15 min', done:false, content:'text' },
-            { id:'d2l2', name:'Visualisations avec Matplotlib',      type:'text', dur:'12 min', done:false, content:'text' },
-            { id:'d2l3', name:'Storytelling avec les données',       type:'text', dur:'10 min', done:false, content:'text', locked:true }
-        ]},
-        { id:'d3', name:'Machine Learning Appliqué', done:false, lessons:[
-            { id:'d3l1', name:'Scikit-learn : premiers modèles',     type:'text', dur:'16 min', done:false, content:'text', locked:true },
-            { id:'d3l2', name:'Évaluation et validation croisée',    type:'text', dur:'14 min', done:false, content:'text', locked:true },
-            { id:'d3l3', name:'Projet : Prédiction de données',      type:'text', dur:'22 min', done:false, content:'text', locked:true }
-        ]}
-      ]
-    }
-  }; // Données locales — surchargées par Supabase si disponible
+  var COURSES = window.COURSES = {}; // Chargé depuis Supabase
 
   /* ── CONTENU DES LEÇONS ── */
   var LESSON_CONTENT = {
@@ -13159,6 +13072,34 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     var found = null;
     var foundModule = null;
     var course = COURSES[currentCourseId];
+
+    // ── DEBUG VISUEL ──────────────────────────────────────────────
+    var _dbg = document.getElementById('pcr-lesson-content');
+    var _log = function(msg, color) {
+      if (!_dbg) return;
+      var line = document.createElement('div');
+      line.style.cssText = 'font-family:monospace;font-size:12px;padding:3px 8px;color:'+(color||'#333');
+      line.textContent = '▶ ' + msg;
+      _dbg.appendChild(line);
+    };
+    _dbg.innerHTML = '<div style="padding:16px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;margin:16px"><b style="font-size:13px">🔍 Debug Reader</b></div>';
+    _log('currentCourseId = ' + currentCourseId);
+    _log('lessonId cherché = ' + lessonId);
+    _log('COURSES keys = ' + Object.keys(COURSES).join(', '));
+    _log('course trouvé = ' + (course ? course.title : 'NULL ❌'), course ? '#166534' : '#dc2626');
+    if (course) {
+      _log('nb modules = ' + course.modules.length);
+      course.modules.forEach(function(m) {
+        m.lessons.forEach(function(l) { _log('  leçon id=' + l.id + ' name=' + l.name, '#555'); });
+      });
+    }
+    // ─────────────────────────────────────────────────────────────
+
+    if (!course) {
+      _log('ERREUR: course est null/undefined', '#dc2626');
+      return;
+    }
+
     for (var i = 0; i < course.modules.length; i++) {
       for (var j = 0; j < course.modules[i].lessons.length; j++) {
         if (course.modules[i].lessons[j].id === lessonId) {
@@ -13169,7 +13110,15 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       }
       if (found) break;
     }
-    if (!found) return;
+
+    _log('found = ' + (found ? found.name : 'NULL ❌'), found ? '#166534' : '#dc2626');
+    if (!found) {
+      _log('ERREUR: lessonId "'+lessonId+'" introuvable dans les leçons ci-dessus', '#dc2626');
+      return;
+    }
+
+    // Supabase check
+    _log('window._sb = ' + (window._sb ? 'OK ✓' : 'NULL ❌'), window._sb ? '#166534' : '#dc2626');
 
     var contentEl = document.getElementById('pcr-lesson-content');
     if (!contentEl) return;
@@ -13193,77 +13142,54 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       document.head.appendChild(style);
     }
 
-    // Essaie de récupérer le contenu depuis Supabase via Edge Function
+    // Contenu déjà chargé dans l'objet leçon depuis openCourseReader
     var aiContent = null;
-    if (window._sb) {
+
+    if (found._sbContent && found._sbContent.trim()) {
+      aiContent = { content: found._sbContent, isQuiz: false };
+    } else if (found._sbQuiz) {
+      aiContent = { quiz: found._sbQuiz, isQuiz: true };
+    } else if (window._sb && found.sbId) {
+      // Fallback : charger depuis Supabase si pas encore dans l'objet
       try {
-        var session = (await window._sb.auth.getSession()).data.session;
-
-        // Si le contenu est déjà chargé depuis Supabase dans l'objet leçon
-        if (found._sbContent) {
-          aiContent = { content: found._sbContent, cached: true };
-        } else {
-          // Chercher dans Supabase : par ID réel d'abord, sinon par titre
-          var lessonQuery;
-          if (found.sbId) {
-            lessonQuery = await window._sb.from('lessons').select('id, content, title, type').eq('id', found.sbId).maybeSingle();
-          } else {
-            lessonQuery = await window._sb.from('lessons').select('id, content, title, type').eq('title', found.name).maybeSingle();
-          }
-          var lessonRow = lessonQuery ? lessonQuery.data : null;
-
-          if (lessonRow) {
-            if (lessonRow.content) {
-              // Contenu déjà en base — utilise directement
-              aiContent = { content: lessonRow.content, cached: true };
-              found._sbContent = lessonRow.content; // Cache pour la prochaine fois
-            } else {
-              // Génère via Edge Function
-              var resp = await fetch(
-                'https://pfbijoyguskdpdseunfh.supabase.co/functions/v1/generate-lesson',
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type':  'application/json',
-                    'Authorization': 'Bearer ' + (session ? session.access_token : '')
-                  },
-                  body: JSON.stringify({
-                    lessonId:    lessonRow.id,
-                    lessonTitle: found.name,
-                    lessonType:  found.type,
-                    moduleTitle: foundModule ? foundModule.name : '',
-                    courseTitle: course.title
-                  })
-                }
-              );
-              if (resp.ok) aiContent = await resp.json();
-            }
+        var lessonRes = await window._sb.from('lessons')
+          .select('content, quiz')
+          .eq('id', found.sbId)
+          .maybeSingle();
+        if (lessonRes.data) {
+          if (lessonRes.data.content) {
+            found._sbContent = lessonRes.data.content;
+            aiContent = { content: lessonRes.data.content, isQuiz: false };
+          } else if (lessonRes.data.quiz) {
+            found._sbQuiz = lessonRes.data.quiz;
+            aiContent = { quiz: lessonRes.data.quiz, isQuiz: true };
           }
         }
-      } catch(err) {
-        console.warn('AI generation failed, using fallback:', err);
-      }
+      } catch(e) { console.warn('[renderLesson] fetch error:', e); }
     }
 
-    // Si contenu IA disponible — l'affiche selon le type
-    if (aiContent && aiContent.content) {
-      if (found.type === 'quiz') {
-        // Parse le JSON du quiz
-        try {
-          var questions = JSON.parse(aiContent.content);
-          contentEl.innerHTML = renderQuizFromAI(found, questions);
-        } catch(e) {
-          // Fallback si le JSON est invalide
-          contentEl.innerHTML = LESSON_CONTENT[found.content](found);
-        }
-      } else {
-        // Texte ou vidéo — wrap dans pcr-content
-        var header = LESSON_CONTENT.text_header(found);
-        contentEl.innerHTML = header +
-          '<div class="pcr-content">' + aiContent.content + '</div>';
+    // Afficher le contenu
+    if (aiContent && aiContent.isQuiz && aiContent.quiz) {
+      // Quiz — données dans la colonne quiz (JSON ou array)
+      try {
+        var questions = typeof aiContent.quiz === 'string'
+          ? JSON.parse(aiContent.quiz)
+          : aiContent.quiz;
+        contentEl.innerHTML = renderQuizFromAI(found, questions);
+      } catch(e) {
+        contentEl.innerHTML = LESSON_CONTENT.quiz(found);
       }
+    } else if (aiContent && aiContent.content) {
+      // Texte généré — wrap dans header + pcr-content
+      var header = LESSON_CONTENT.text_header ? LESSON_CONTENT.text_header(found) : '';
+      // Convertir les sauts de ligne en paragraphes HTML si c'est du texte brut
+      var body = aiContent.content;
+      if (!body.includes('<')) {
+        body = '<p>' + body.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
+      }
+      contentEl.innerHTML = header + '<div class="pcr-content">' + body + '</div>';
     } else {
-      // Fallback sur le contenu statique
+      // Fallback statique si rien en base
       var renderer = LESSON_CONTENT[found.content] || LESSON_CONTENT.text;
       contentEl.innerHTML = renderer(found);
     }
@@ -13312,22 +13238,28 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 
   /* ── OPEN / CLOSE ── */
   // Mapping slugs Supabase → clés locales COURSES
+  // Mapping slug Supabase → clé locale (et clé locale → elle-même)
   var _SLUG_MAP = {
-    'ia-generative-llms':  'ia-gen',
-    'automatisation-n8n':  'automatisation',
-    'fondamentaux-ia':     'fondamentaux',
-    'data-science-python': 'data',
-    'ia-gen':              'ia-gen',
-    'automatisation':      'automatisation',
-    'fondamentaux':        'fondamentaux',
-    'data':                'data'
+    // slugs Supabase exacts
+    'ia-generative-llms':                       'ia-gen',
+    'automatisation-n8n':                        'automatisation',
+    'fondations-de-l-ia-1779434920365':          'fondations',
+    'mathematiques-pour-l-ia-1779436227828':     'maths',
+    'introduction-au-machine-learning-177943':   'intro-ml',
+    'data-science-python':                       'data',
+    // clés locales (identité)
+    'ia-gen':'ia-gen', 'automatisation':'automatisation',
+    'fondations':'fondations', 'maths':'maths',
+    'intro-ml':'intro-ml', 'data':'data'
   };
 
-  // Mapping clés locales → slugs Supabase
+  // Mapping clé locale → slug Supabase exact
   var _LOCAL_TO_SLUG = {
     'ia-gen':        'ia-generative-llms',
     'automatisation':'automatisation-n8n',
-    'fondamentaux':  'fondamentaux-ia',
+    'fondations':    'fondations-de-l-ia-1779434920365',
+    'maths':         'mathematiques-pour-l-ia-1779436227828',
+    'intro-ml':      'introduction-au-machine-learning-177943',
     'data':          'data-science-python'
   };
 
@@ -13340,53 +13272,102 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     currentCourseId = localKey;
     var course = COURSES[localKey];
 
-    // Toujours tenter de charger depuis Supabase (surcharge les données locales)
-    // Le reader s'ouvre immédiatement avec les données locales, puis se rafraîchit
+    // Charger depuis Supabase si pas encore chargé
     var _sbLoaded = COURSES[localKey] && COURSES[localKey]._sbLoaded;
     if (!_sbLoaded && window._sb) {
+      // Placeholder immédiat pendant le chargement
+      if (!COURSES[localKey]) {
+        COURSES[localKey] = {
+          title: 'Chargement...',
+          modules: [{ id:'loading', name:'Chargement...', done:false,
+            lessons:[{ id:'loading-l1', name:'Chargement du contenu...', type:'text', dur:'...', done:false, content:'text' }]
+          }]
+        };
+      }
       (async function(lk, slug) {
         try {
           var sb = window._sb;
-          // Chercher le cours par slug puis par id
-          var courseRes = await sb.from('courses').select('id,title,description').eq('slug', slug).maybeSingle();
-          if (!courseRes.data) courseRes = await sb.from('courses').select('id,title,description').eq('id', slug).maybeSingle();
-          if (!courseRes.data) { console.warn('[openCourseReader] cours Supabase introuvable:', slug); return; }
 
-          var modRes = await sb.from('modules')
-            .select('id,title,position,lessons(id,title,position,type,duration,content)')
-            .eq('course_id', courseRes.data.id)
+          // 1. Chercher le cours par slug exact
+          var courseRes = await sb.from('courses')
+            .select('id, title, description')
+            .eq('slug', slug)
+            .maybeSingle();
+
+          if (!courseRes.data) {
+            console.warn('[reader] cours introuvable slug=', slug);
+            return;
+          }
+          var courseRow = courseRes.data;
+
+          // 2. Charger les leçons directement depuis course_id (ta vraie structure)
+          var lessonsRes = await sb.from('lessons')
+            .select('id, title, type, duration_min, position, is_free, content, quiz, module_id')
+            .eq('course_id', courseRow.id)
             .order('position', { ascending: true });
 
-          var rawMods = modRes.data || [];
-          var modules = rawMods.map(function(m, mi) {
-            var lessons = (m.lessons || [])
-              .sort(function(a,b){ return (a.position||0)-(b.position||0); })
-              .map(function(l, li) {
-                return {
-                  id:      l.id,          // ID Supabase RÉEL (pas préfixé)
-                  sbId:    l.id,          // Conservé pour la requête renderLesson
-                  name:    l.title || ('Leçon '+(li+1)),
-                  type:    l.type === 'quiz' ? 'quiz' : 'text',
-                  dur:     l.duration || '10 min',
-                  done:    false,
-                  content: l.type === 'quiz' ? 'quiz' : 'text',
-                  _sbContent: l.content || null   // Contenu déjà en base si présent
-                };
-              });
+          var rawLessons = lessonsRes.data || [];
+
+          // 3. Grouper par module_id
+          var moduleMap = {};
+          var moduleOrder = [];
+          rawLessons.forEach(function(l) {
+            var mid = l.module_id || 'default';
+            if (!moduleMap[mid]) {
+              moduleMap[mid] = [];
+              moduleOrder.push(mid);
+            }
+            moduleMap[mid].push(l);
+          });
+
+          // 4. Charger les titres des modules
+          var moduleTitles = {};
+          if (moduleOrder[0] !== 'default') {
+            var modsRes = await sb.from('modules')
+              .select('id, title, position')
+              .in('id', moduleOrder)
+              .order('position', { ascending: true });
+            (modsRes.data || []).forEach(function(m) {
+              moduleTitles[m.id] = m.title;
+            });
+          }
+
+          // 5. Construire la structure COURSES
+          var modules = moduleOrder.map(function(mid, mi) {
+            var lessons = moduleMap[mid].map(function(l, li) {
+              var hasContent = !!(l.content && l.content.trim());
+              var hasQuiz    = !!(l.quiz);
+              return {
+                id:          l.id,
+                sbId:        l.id,
+                name:        l.title || ('Leçon ' + (li+1)),
+                type:        hasQuiz ? 'quiz' : 'text',
+                dur:         l.duration_min ? l.duration_min + ' min' : '10 min',
+                done:        false,
+                locked:      !l.is_free && li > 1,
+                content:     hasQuiz ? 'quiz' : 'text',
+                _sbContent:  l.content  || null,
+                _sbQuiz:     l.quiz     || null
+              };
+            });
             return {
-              id:   m.id,
-              name: m.title || ('Module '+(mi+1)),
+              id:   mid,
+              name: moduleTitles[mid] || ('Module ' + (mi+1)),
               done: false,
-              lessons: lessons.length ? lessons : [{ id:m.id+'-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
+              lessons: lessons
             };
           });
 
-          if (modules.length) {
-            COURSES[lk] = { title: courseRes.data.title, modules: modules, _sbLoaded: true };
-            // Rafraîchir le reader avec les vraies données Supabase
-            if (window.openCourseReader) window.openCourseReader(lk);
+          if (!modules.length) {
+            console.warn('[reader] aucune leçon pour course_id=', courseRow.id);
+            return;
           }
-        } catch(e) { console.warn('[openCourseReader] Supabase load error:', e); }
+
+          COURSES[lk] = { title: courseRow.title, modules: modules, _sbLoaded: true };
+          // Relancer le reader avec les vraies données
+          if (window.openCourseReader) window.openCourseReader(lk);
+
+        } catch(e) { console.warn('[openCourseReader] Supabase error:', e); }
       })(localKey, sbSlug);
     }
 
