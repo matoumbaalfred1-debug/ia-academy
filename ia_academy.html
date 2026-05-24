@@ -12822,7 +12822,94 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
 (function() {
 
   /* ── DONNÉES DE COURS ── */
-  var COURSES = window.COURSES = {}; // Chargé dynamiquement depuis Supabase
+  var COURSES = window.COURSES = {
+    'ia-gen': {
+      title: 'IA Générative & LLMs',
+      modules: [
+        { id:'m1', name:'Introduction aux LLMs', done:false, lessons:[
+            { id:'l1', name:"Qu'est-ce qu'un LLM ?",          type:'text', dur:'8 min',  done:false, content:'text' },
+            { id:'l2', name:'Histoire des transformers',       type:'text', dur:'12 min', done:false, content:'text' },
+            { id:'l3', name:'Quiz : Les bases',                type:'quiz', dur:'5 min',  done:false, content:'quiz' }
+        ]},
+        { id:'m2', name:'Prompt Engineering', done:false, lessons:[
+            { id:'l4', name:"Anatomie d'un bon prompt",        type:'text', dur:'11 min', done:false, content:'text' },
+            { id:'l5', name:'Techniques avancées',             type:'text', dur:'15 min', done:false, content:'text' },
+            { id:'l6', name:'Few-shot & chain-of-thought',     type:'text', dur:'9 min',  done:false, content:'text' },
+            { id:'l7', name:'Quiz : Prompting',                type:'quiz', dur:'6 min',  done:false, content:'quiz' }
+        ]},
+        { id:'m3', name:'RAG & Agents', done:false, lessons:[
+            { id:'l8',  name:'Comprendre le RAG',              type:'text', dur:'13 min', done:false, content:'text', locked:true },
+            { id:'l9',  name:'Construire un pipeline RAG',     type:'text', dur:'18 min', done:false, content:'text', locked:true },
+            { id:'l10', name:'Introduction aux agents IA',     type:'text', dur:'14 min', done:false, content:'text', locked:true }
+        ]},
+        { id:'m4', name:'Déploiement & Production', done:false, lessons:[
+            { id:'l11', name:'APIs et intégrations',           type:'text', dur:'10 min', done:false, content:'text', locked:true },
+            { id:'l12', name:"Projet final : Build your AI",   type:'text', dur:'22 min', done:false, content:'text', locked:true }
+        ]}
+      ]
+    },
+    'automatisation': {
+      title: 'Automatisation No-Code & n8n',
+      modules: [
+        { id:'a1', name:"Bases de l'automatisation", done:false, lessons:[
+            { id:'a1l1', name:'Pourquoi automatiser ?',             type:'text', dur:'7 min',  done:false, content:'text' },
+            { id:'a1l2', name:'Les outils no-code en 2025',         type:'text', dur:'10 min', done:false, content:'text' },
+            { id:'a1l3', name:'Quiz : Automatisation 101',          type:'quiz', dur:'5 min',  done:false, content:'quiz' }
+        ]},
+        { id:'a2', name:'n8n — Prise en main', done:false, lessons:[
+            { id:'a2l1', name:'Installation et interface n8n',      type:'text', dur:'12 min', done:false, content:'text' },
+            { id:'a2l2', name:'Votre premier workflow',             type:'text', dur:'14 min', done:false, content:'text' },
+            { id:'a2l3', name:'Triggers, nodes et connections',     type:'text', dur:'11 min', done:false, content:'text', locked:true },
+            { id:'a2l4', name:'Quiz : n8n Essentials',              type:'quiz', dur:'6 min',  done:false, content:'quiz', locked:true }
+        ]},
+        { id:'a3', name:'Workflows avancés', done:false, lessons:[
+            { id:'a3l1', name:'Intégrer des APIs REST',             type:'text', dur:'15 min', done:false, content:'text', locked:true },
+            { id:'a3l2', name:"Automatiser avec l'IA (GPT/Claude)", type:'text', dur:'18 min', done:false, content:'text', locked:true },
+            { id:'a3l3', name:'Projet : Pipeline email intelligent', type:'text', dur:'20 min', done:false, content:'text', locked:true }
+        ]}
+      ]
+    },
+    'fondamentaux': {
+      title: "Fondamentaux de l'IA",
+      modules: [
+        { id:'f1', name:"Introduction à l'Intelligence Artificielle", done:false, lessons:[
+            { id:'f1l1', name:"Histoire et évolution de l'IA",      type:'text', dur:'9 min',  done:false, content:'text' },
+            { id:'f1l2', name:'Machine Learning vs Deep Learning',   type:'text', dur:'11 min', done:false, content:'text' },
+            { id:'f1l3', name:'Quiz : Concepts fondamentaux',        type:'quiz', dur:'5 min',  done:false, content:'quiz' }
+        ]},
+        { id:'f2', name:"Mathématiques pour l'IA", done:false, lessons:[
+            { id:'f2l1', name:'Algèbre linéaire essentielle',        type:'text', dur:'13 min', done:false, content:'text' },
+            { id:'f2l2', name:'Probabilités et statistiques',        type:'text', dur:'12 min', done:false, content:'text' },
+            { id:'f2l3', name:'Gradient descent intuition',          type:'text', dur:'10 min', done:false, content:'text', locked:true }
+        ]},
+        { id:'f3', name:'Réseaux de neurones', done:false, lessons:[
+            { id:'f3l1', name:'Le perceptron et ses couches',        type:'text', dur:'14 min', done:false, content:'text', locked:true },
+            { id:'f3l2', name:'Backpropagation expliquée',           type:'text', dur:'16 min', done:false, content:'text', locked:true },
+            { id:'f3l3', name:'Quiz : Deep Learning',                type:'quiz', dur:'6 min',  done:false, content:'quiz', locked:true }
+        ]}
+      ]
+    },
+    'data': {
+      title: 'Data Science avec Python',
+      modules: [
+        { id:'d1', name:'Python pour la Data', done:false, lessons:[
+            { id:'d1l1', name:'Environnement Python & Jupyter',      type:'text', dur:'8 min',  done:false, content:'text' },
+            { id:'d1l2', name:'NumPy et Pandas essentiels',          type:'text', dur:'13 min', done:false, content:'text' },
+            { id:'d1l3', name:'Quiz : Python Data',                  type:'quiz', dur:'5 min',  done:false, content:'quiz' }
+        ]},
+        { id:'d2', name:'Analyse & Visualisation', done:false, lessons:[
+            { id:'d2l1', name:'Exploration de données (EDA)',         type:'text', dur:'15 min', done:false, content:'text' },
+            { id:'d2l2', name:'Visualisations avec Matplotlib',      type:'text', dur:'12 min', done:false, content:'text' },
+            { id:'d2l3', name:'Storytelling avec les données',       type:'text', dur:'10 min', done:false, content:'text', locked:true }
+        ]},
+        { id:'d3', name:'Machine Learning Appliqué', done:false, lessons:[
+            { id:'d3l1', name:'Scikit-learn : premiers modèles',     type:'text', dur:'16 min', done:false, content:'text', locked:true },
+            { id:'d3l2', name:'Évaluation et validation croisée',    type:'text', dur:'14 min', done:false, content:'text', locked:true },
+            { id:'d3l3', name:'Projet : Prédiction de données',      type:'text', dur:'22 min', done:false, content:'text', locked:true }
+        ]}
+      ]
+    }
+  }; // Données locales — surchargées par Supabase si disponible
 
   /* ── CONTENU DES LEÇONS ── */
   var LESSON_CONTENT = {
