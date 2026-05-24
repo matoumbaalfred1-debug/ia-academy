@@ -13192,7 +13192,16 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       // Convertir les sauts de ligne en paragraphes HTML si c'est du texte brut
       var body = aiContent.content;
       if (!body.includes('<')) {
-        body = '<p>' + body.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
+        // Convertir markdown basique → HTML
+        body = body
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')   // **gras**
+          .replace(/\*([^*]+)\*/g, '<em>$1</em>')                 // *italique*
+          .replace(/^#{1,3}\s+(.+)$/gm, '<h3>$1</h3>')            // ## titres
+          .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')              // - listes
+          .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+          .replace(/\n\n+/g, '</p><p>')
+          .replace(/\n/g, '<br>');
+        body = '<p>' + body + '</p>';
       }
       contentEl.innerHTML = header + '<div class="pcr-content">' + body + '</div>';
     } else {
@@ -13343,11 +13352,14 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
           var modules = moduleOrder.map(function(mid, mi) {
             var lessons = moduleMap[mid].map(function(l, li) {
               var hasContent = !!(l.content && l.content.trim());
-              var hasQuiz = !!(l.quiz);
+              // Si la leçon a un quiz → c'est un quiz (même si content est aussi rempli)
               var parsedQuiz = null;
-              if (hasQuiz) {
-                try { parsedQuiz = typeof l.quiz === 'string' ? JSON.parse(l.quiz) : l.quiz; }
-                catch(e) { parsedQuiz = null; hasQuiz = false; }
+              var hasQuiz = false;
+              if (l.quiz) {
+                try {
+                  parsedQuiz = typeof l.quiz === 'string' ? JSON.parse(l.quiz) : l.quiz;
+                  hasQuiz = Array.isArray(parsedQuiz) && parsedQuiz.length > 0;
+                } catch(e) { parsedQuiz = null; hasQuiz = false; }
               }
               return {
                 id:         l.id,
@@ -13358,8 +13370,8 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
                 done:       false,
                 locked:     false,
                 content:    hasQuiz ? 'quiz' : 'text',
-                _sbContent: (!hasQuiz && l.content) ? l.content : null,
-                _sbQuiz:    parsedQuiz
+                _sbContent: hasQuiz ? null : (l.content || null),
+                _sbQuiz:    hasQuiz ? parsedQuiz : null
               };
             });
             return {
@@ -13967,7 +13979,9 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
   var COURSE_SLUGS = {
     'ia-gen':        'ia-generative-llms',
     'automatisation':'automatisation-n8n',
-    'fondamentaux':  'fondamentaux-ia',
+    'fondations':    'fondations-de-l-ia-1779434920365',
+    'maths':         'mathematiques-pour-l-ia-1779436227828',
+    'intro-ml':      'introduction-au-machine-learning-177943',
     'data':          'data-science-python'
   };
 
@@ -13987,15 +14001,21 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       if (!window._sb) return;
       var sbSession = (await window._sb.auth.getSession()).data.session;
       if (!sbSession) return;
+      // Résoudre le slug : clé locale → slug Supabase exact
       var slug = COURSE_SLUGS[courseId] || courseId;
-      var { data: courseRow } = await window._sb.from('courses').select('id').eq('slug', slug).single();
+      // Chercher par slug d'abord, puis par id si pas trouvé
+      var courseRowRes = await window._sb.from('courses').select('id').eq('slug', slug).maybeSingle();
+      if (!courseRowRes.data) courseRowRes = await window._sb.from('courses').select('id').eq('slug', courseId).maybeSingle();
+      var courseRow = courseRowRes ? courseRowRes.data : null;
       if (!courseRow) return;
       var { error: enrollErr } = await window._sb.from('enrollments').upsert(
         { user_id: sbSession.user.id, course_id: courseRow.id },
         { onConflict: 'user_id,course_id' }
       );
       if (!enrollErr) {
-        if (window._iaUserData) window._iaUserData.formations = (window._iaUserData.formations || 0) + 1;
+        // Recharger le vrai count depuis Supabase
+        var r1 = await window._sb.from('enrollments').select('*', {count:'exact', head:true}).eq('user_id', sbSession.user.id);
+        if (window._iaUserData) window._iaUserData.formations = r1.count || (window._iaUserData.formations || 0) + 1;
         if (window._syncProfilStats) _syncProfilStats();
         if (window.showToast) showToast('Inscription confirmée !', 'Bonne formation !');
       }
