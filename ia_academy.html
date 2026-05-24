@@ -13199,37 +13199,45 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
       try {
         var session = (await window._sb.auth.getSession()).data.session;
 
-        // Cherche l'ID de la leçon dans Supabase par titre
-        var { data: lessonRow } = await window._sb
-          .from('lessons')
-          .select('id, content, title, type')
-          .eq('title', found.name)
-          .single();
-
-        if (lessonRow) {
-          if (lessonRow.content) {
-            // Contenu déjà en base — utilise directement
-            aiContent = { content: lessonRow.content, cached: true };
+        // Si le contenu est déjà chargé depuis Supabase dans l'objet leçon
+        if (found._sbContent) {
+          aiContent = { content: found._sbContent, cached: true };
+        } else {
+          // Chercher dans Supabase : par ID réel d'abord, sinon par titre
+          var lessonQuery;
+          if (found.sbId) {
+            lessonQuery = await window._sb.from('lessons').select('id, content, title, type').eq('id', found.sbId).maybeSingle();
           } else {
-            // Génère via Edge Function
-            var resp = await fetch(
-              'https://pfbijoyguskdpdseunfh.supabase.co/functions/v1/generate-lesson',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type':  'application/json',
-                  'Authorization': 'Bearer ' + (session ? session.access_token : '')
-                },
-                body: JSON.stringify({
-                  lessonId:    lessonRow.id,
-                  lessonTitle: found.name,
-                  lessonType:  found.type,
-                  moduleTitle: foundModule ? foundModule.name : '',
-                  courseTitle: course.title
-                })
-              }
-            );
-            aiContent = await resp.json();
+            lessonQuery = await window._sb.from('lessons').select('id, content, title, type').eq('title', found.name).maybeSingle();
+          }
+          var lessonRow = lessonQuery ? lessonQuery.data : null;
+
+          if (lessonRow) {
+            if (lessonRow.content) {
+              // Contenu déjà en base — utilise directement
+              aiContent = { content: lessonRow.content, cached: true };
+              found._sbContent = lessonRow.content; // Cache pour la prochaine fois
+            } else {
+              // Génère via Edge Function
+              var resp = await fetch(
+                'https://pfbijoyguskdpdseunfh.supabase.co/functions/v1/generate-lesson',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type':  'application/json',
+                    'Authorization': 'Bearer ' + (session ? session.access_token : '')
+                  },
+                  body: JSON.stringify({
+                    lessonId:    lessonRow.id,
+                    lessonTitle: found.name,
+                    lessonType:  found.type,
+                    moduleTitle: foundModule ? foundModule.name : '',
+                    courseTitle: course.title
+                  })
+                }
+              );
+              if (resp.ok) aiContent = await resp.json();
+            }
           }
         }
       } catch(err) {
@@ -13332,64 +13340,53 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     currentCourseId = localKey;
     var course = COURSES[localKey];
 
-    // Si pas encore dans COURSES, charger depuis Supabase
-    if (!course) {
-      // Placeholder immédiat
-      course = {
-        title: 'Chargement...',
-        modules: [{ id:'m-load', name:'Chargement...', done:false,
-          lessons:[{ id:'l-load', name:'Chargement du contenu...', type:'text', dur:'...', done:false, content:'text' }]
-        }]
-      };
-      COURSES[localKey] = course;
-      // Charger le vrai contenu en arrière-plan
+    // Toujours tenter de charger depuis Supabase (surcharge les données locales)
+    // Le reader s'ouvre immédiatement avec les données locales, puis se rafraîchit
+    var _sbLoaded = COURSES[localKey] && COURSES[localKey]._sbLoaded;
+    if (!_sbLoaded && window._sb) {
       (async function(lk, slug) {
         try {
           var sb = window._sb;
-          if (!sb) return;
-          // Chercher par slug d'abord, puis par id
+          // Chercher le cours par slug puis par id
           var courseRes = await sb.from('courses').select('id,title,description').eq('slug', slug).maybeSingle();
-          if (!courseRes.data) {
-            courseRes = await sb.from('courses').select('id,title,description').eq('id', slug).maybeSingle();
-          }
-          if (!courseRes.data) {
-            console.warn('[openCourseReader] cours introuvable pour slug:', slug);
-            return;
-          }
+          if (!courseRes.data) courseRes = await sb.from('courses').select('id,title,description').eq('id', slug).maybeSingle();
+          if (!courseRes.data) { console.warn('[openCourseReader] cours Supabase introuvable:', slug); return; }
+
           var modRes = await sb.from('modules')
-            .select('id,title,position,lessons(id,title,position,type,duration)')
+            .select('id,title,position,lessons(id,title,position,type,duration,content)')
             .eq('course_id', courseRes.data.id)
             .order('position', { ascending: true });
+
           var rawMods = modRes.data || [];
           var modules = rawMods.map(function(m, mi) {
             var lessons = (m.lessons || [])
               .sort(function(a,b){ return (a.position||0)-(b.position||0); })
               .map(function(l, li) {
                 return {
-                  id: 'sb-'+l.id,
-                  name: l.title || ('Leçon '+(li+1)),
-                  type: l.type === 'quiz' ? 'quiz' : 'text',
-                  dur:  l.duration || '10 min',
-                  done: false,
-                  content: l.type === 'quiz' ? 'quiz' : 'text'
+                  id:      l.id,          // ID Supabase RÉEL (pas préfixé)
+                  sbId:    l.id,          // Conservé pour la requête renderLesson
+                  name:    l.title || ('Leçon '+(li+1)),
+                  type:    l.type === 'quiz' ? 'quiz' : 'text',
+                  dur:     l.duration || '10 min',
+                  done:    false,
+                  content: l.type === 'quiz' ? 'quiz' : 'text',
+                  _sbContent: l.content || null   // Contenu déjà en base si présent
                 };
               });
             return {
-              id: 'sb-'+m.id,
+              id:   m.id,
               name: m.title || ('Module '+(mi+1)),
               done: false,
-              lessons: lessons.length ? lessons : [{ id:'sb-'+m.id+'-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
+              lessons: lessons.length ? lessons : [{ id:m.id+'-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
             };
           });
-          if (!modules.length) {
-            modules = [{ id:'sb-default', name: courseRes.data.title, done:false,
-              lessons:[{ id:'sb-l1', name:'Introduction', type:'text', dur:'10 min', done:false, content:'text' }]
-            }];
+
+          if (modules.length) {
+            COURSES[lk] = { title: courseRes.data.title, modules: modules, _sbLoaded: true };
+            // Rafraîchir le reader avec les vraies données Supabase
+            if (window.openCourseReader) window.openCourseReader(lk);
           }
-          COURSES[lk] = { title: courseRes.data.title, modules: modules };
-          // Rafraîchir le reader avec le vrai contenu
-          if (window.openCourseReader) window.openCourseReader(lk);
-        } catch(e) { console.warn('[openCourseReader] async load error:', e); }
+        } catch(e) { console.warn('[openCourseReader] Supabase load error:', e); }
       })(localKey, sbSlug);
     }
 
