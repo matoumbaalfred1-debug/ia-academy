@@ -3328,6 +3328,21 @@ to {
   color:var(--text-2);
 }
 
+.pcr-quiz-section {
+  margin: 40px 0 0;
+  padding: 0;
+}
+.pcr-quiz-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
 .pcr-quiz {
   background:#fff;
   border:1.5px solid var(--border);
@@ -13174,41 +13189,63 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     }
 
     // Afficher le contenu
-    if (found._sbQuiz && Array.isArray(found._sbQuiz) && found._sbQuiz.length) {
-      // Quiz depuis Supabase — affichage direct
-      contentEl.innerHTML = renderQuizFromAI(found, found._sbQuiz);
-    } else if (aiContent && aiContent.isQuiz && aiContent.quiz) {
-      try {
-        var questions = typeof aiContent.quiz === 'string'
-          ? JSON.parse(aiContent.quiz)
-          : aiContent.quiz;
-        contentEl.innerHTML = renderQuizFromAI(found, questions);
-      } catch(e) {
-        contentEl.innerHTML = LESSON_CONTENT.quiz ? LESSON_CONTENT.quiz(found) : '';
-      }
-    } else if (aiContent && aiContent.content) {
-      // Texte généré — wrap dans header + pcr-content
-      var header = LESSON_CONTENT.text_header ? LESSON_CONTENT.text_header(found) : '';
-      // Convertir les sauts de ligne en paragraphes HTML si c'est du texte brut
-      var body = aiContent.content;
+    // ── RENDU : texte d'abord, quiz en bas si présent ──────────────────
+    var header = LESSON_CONTENT.text_header ? LESSON_CONTENT.text_header(found) : '';
+    var bodyHtml = '';
+    var quizHtml = '';
+
+    // 1. Contenu texte
+    if (found._sbContent && found._sbContent.trim()) {
+      var body = found._sbContent;
       if (!body.includes('<')) {
-        // Convertir markdown basique → HTML
+        // Markdown → HTML
         body = body
-          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')   // **gras**
-          .replace(/\*([^*]+)\*/g, '<em>$1</em>')                 // *italique*
-          .replace(/^#{1,3}\s+(.+)$/gm, '<h3>$1</h3>')            // ## titres
-          .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')              // - listes
-          .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-          .replace(/\n\n+/g, '</p><p>')
-          .replace(/\n/g, '<br>');
-        body = '<p>' + body + '</p>';
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+          .replace(/^#{3}\s+(.+)$/gm, '<h4>$1</h4>')
+          .replace(/^#{1,2}\s+(.+)$/gm, '<h3>$1</h3>')
+          .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+        // Wrap listes
+        body = body.replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g, '<ul>$1</ul>');
+        body = '<p>' + body.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
       }
-      contentEl.innerHTML = header + '<div class="pcr-content">' + body + '</div>';
-    } else {
-      // Fallback statique si rien en base
+      bodyHtml = '<div class="pcr-content">' + body + '</div>';
+    } else if (!found._sbQuiz) {
+      // Fallback statique si rien du tout en base
       var renderer = LESSON_CONTENT[found.content] || LESSON_CONTENT.text;
       contentEl.innerHTML = renderer(found);
+      return; // early return pour éviter le reste
     }
+
+    // 2. Quiz (après le texte)
+    if (found._sbQuiz && Array.isArray(found._sbQuiz) && found._sbQuiz.length) {
+      var quizSection =
+        '<div class="pcr-quiz-section">' +
+          '<div class="pcr-quiz-section-title">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+            ' Testez vos connaissances' +
+          '</div>';
+      quizSection += found._sbQuiz.map(function(q, qi) {
+        var qText    = q.question   || q.q   || ('Question ' + (qi+1));
+        var qOpts    = q.options    || q.opts || [];
+        var qCorrect = (q.reponse_correcte !== undefined) ? q.reponse_correcte : (q.correct !== undefined ? q.correct : 0);
+        var opts = qOpts.map(function(opt, oi) {
+          return '<div class="pcr-quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'" data-correct="'+qCorrect+'">' +
+            '<div class="pcr-quiz-radio"></div>' + opt +
+          '</div>';
+        }).join('');
+        return '<div class="pcr-quiz" id="quiz-'+qi+'">' +
+          '<div class="pcr-quiz-q">Question '+(qi+1)+' : '+qText+'</div>' +
+          opts +
+          '<button class="pcr-quiz-btn" data-qi="'+qi+'">Valider</button>' +
+          '<div class="pcr-quiz-feedback" id="qfb-'+qi+'"></div>' +
+        '</div>';
+      }).join('');
+      quizSection += '</div>';
+      quizHtml = quizSection;
+    }
+
+    contentEl.innerHTML = header + bodyHtml + quizHtml;
 
     // Quiz interactions
     if (found.type === 'quiz' || found.content === 'quiz') {
@@ -13352,26 +13389,25 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
           var modules = moduleOrder.map(function(mid, mi) {
             var lessons = moduleMap[mid].map(function(l, li) {
               var hasContent = !!(l.content && l.content.trim());
-              // Si la leçon a un quiz → c'est un quiz (même si content est aussi rempli)
+              // Toute leçon = texte + quiz optionnel en bas
               var parsedQuiz = null;
-              var hasQuiz = false;
               if (l.quiz) {
                 try {
                   parsedQuiz = typeof l.quiz === 'string' ? JSON.parse(l.quiz) : l.quiz;
-                  hasQuiz = Array.isArray(parsedQuiz) && parsedQuiz.length > 0;
-                } catch(e) { parsedQuiz = null; hasQuiz = false; }
+                  if (!Array.isArray(parsedQuiz) || !parsedQuiz.length) parsedQuiz = null;
+                } catch(e) { parsedQuiz = null; }
               }
               return {
                 id:         l.id,
                 sbId:       l.id,
                 name:       l.title || ('Leçon ' + (li+1)),
-                type:       hasQuiz ? 'quiz' : 'text',
+                type:       'text',
                 dur:        l.duration_min ? l.duration_min + ' min' : '10 min',
                 done:       false,
                 locked:     false,
-                content:    hasQuiz ? 'quiz' : 'text',
-                _sbContent: hasQuiz ? null : (l.content || null),
-                _sbQuiz:    hasQuiz ? parsedQuiz : null
+                content:    'text',
+                _sbContent: l.content || null,
+                _sbQuiz:    parsedQuiz
               };
             });
             return {
