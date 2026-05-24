@@ -13020,13 +13020,18 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     '<div class="pcr-content"><p>Testez vos connaissances sur cette leçon.</p>';
 
     var quizHtml = questions.map(function(q, qi) {
-      var opts = q.opts.map(function(opt, oi) {
-        return '<div class="pcr-quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'" data-correct="'+q.correct+'">' +
+      // Normaliser clés Supabase (question/options/reponse_correcte) ET clés internes (q/opts/correct)
+      var qText   = q.question   || q.q   || ('Question ' + (qi+1));
+      var qOpts   = q.options    || q.opts || [];
+      var qCorrect= (q.reponse_correcte !== undefined) ? q.reponse_correcte : (q.correct !== undefined ? q.correct : 0);
+
+      var opts = qOpts.map(function(opt, oi) {
+        return '<div class="pcr-quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'" data-correct="'+qCorrect+'">' +
           '<div class="pcr-quiz-radio"></div>' + opt +
         '</div>';
       }).join('');
       return '<div class="pcr-quiz" id="quiz-'+qi+'">' +
-        '<div class="pcr-quiz-q">Question '+(qi+1)+' : '+q.q+'</div>' +
+        '<div class="pcr-quiz-q">Question '+(qi+1)+' : '+qText+'</div>' +
         opts +
         '<button class="pcr-quiz-btn" data-qi="'+qi+'">Valider</button>' +
         '<div class="pcr-quiz-feedback" id="qfb-'+qi+'"></div>' +
@@ -13169,15 +13174,17 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
     }
 
     // Afficher le contenu
-    if (aiContent && aiContent.isQuiz && aiContent.quiz) {
-      // Quiz — données dans la colonne quiz (JSON ou array)
+    if (found._sbQuiz && Array.isArray(found._sbQuiz) && found._sbQuiz.length) {
+      // Quiz depuis Supabase — affichage direct
+      contentEl.innerHTML = renderQuizFromAI(found, found._sbQuiz);
+    } else if (aiContent && aiContent.isQuiz && aiContent.quiz) {
       try {
         var questions = typeof aiContent.quiz === 'string'
           ? JSON.parse(aiContent.quiz)
           : aiContent.quiz;
         contentEl.innerHTML = renderQuizFromAI(found, questions);
       } catch(e) {
-        contentEl.innerHTML = LESSON_CONTENT.quiz(found);
+        contentEl.innerHTML = LESSON_CONTENT.quiz ? LESSON_CONTENT.quiz(found) : '';
       }
     } else if (aiContent && aiContent.content) {
       // Texte généré — wrap dans header + pcr-content
@@ -13336,18 +13343,23 @@ document.querySelectorAll('.btn-pri, .btn-sec, .btn-w').forEach(function(btn) {
           var modules = moduleOrder.map(function(mid, mi) {
             var lessons = moduleMap[mid].map(function(l, li) {
               var hasContent = !!(l.content && l.content.trim());
-              var hasQuiz    = !!(l.quiz);
+              var hasQuiz = !!(l.quiz);
+              var parsedQuiz = null;
+              if (hasQuiz) {
+                try { parsedQuiz = typeof l.quiz === 'string' ? JSON.parse(l.quiz) : l.quiz; }
+                catch(e) { parsedQuiz = null; hasQuiz = false; }
+              }
               return {
-                id:          l.id,
-                sbId:        l.id,
-                name:        l.title || ('Leçon ' + (li+1)),
-                type:        hasQuiz ? 'quiz' : 'text',
-                dur:         l.duration_min ? l.duration_min + ' min' : '10 min',
-                done:        false,
-                locked:      !l.is_free && li > 1,
-                content:     hasQuiz ? 'quiz' : 'text',
-                _sbContent:  l.content  || null,
-                _sbQuiz:     l.quiz     || null
+                id:         l.id,
+                sbId:       l.id,
+                name:       l.title || ('Leçon ' + (li+1)),
+                type:       hasQuiz ? 'quiz' : 'text',
+                dur:        l.duration_min ? l.duration_min + ' min' : '10 min',
+                done:       false,
+                locked:     false,
+                content:    hasQuiz ? 'quiz' : 'text',
+                _sbContent: (!hasQuiz && l.content) ? l.content : null,
+                _sbQuiz:    parsedQuiz
               };
             });
             return {
