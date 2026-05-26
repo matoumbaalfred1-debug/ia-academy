@@ -33,11 +33,11 @@
 | | Section |
 |---|---------|
 | 01 | [Vue d'ensemble](#-vue-densemble) |
-| 02 | [A qui s'adresse la plateforme](#-a-qui-sadresse-la-plateforme) |
+| 02 | [À qui s'adresse la plateforme](#-à-qui-sadresse-la-plateforme) |
 | 03 | [Ce que couvre la plateforme](#-ce-que-couvre-la-plateforme) |
 | 04 | [Comment ça fonctionne](#-comment-ça-fonctionne) |
 | 05 | [Modèle d'accès](#-modèle-daccès) |
-| 06 | [Etat du projet](#-etat-du-projet) |
+| 06 | [État du projet](#-état-du-projet) |
 | 07 | [Stack technique](#-stack-technique) |
 | 08 | [Architecture](#-architecture) |
 | 09 | [Structure du projet](#-structure-du-projet) |
@@ -47,7 +47,7 @@
 
 ---
 
-## 🌐 Vue d'ensemble
+## 🌍 Vue d'ensemble
 
 **IA Academy** est une plateforme d'apprentissage 100% dédiée à l'intelligence artificielle, accessible à **tout le monde** sans distinction de niveau ou de profil.
 
@@ -59,23 +59,23 @@ La plateforme fonctionne sur un modèle **Freemium** : une grande partie du cont
 
 ---
 
-## 👥 A qui s'adresse la plateforme
+## 🎯 À qui s'adresse la plateforme
 
 <div align="center">
 
 | Profil | Ce qu'il trouve sur IA Academy |
 |--------|-------------------------------|
-| 🟣 Débutant | Cours d'introduction, vocabulaire, premiers outils IA |
-| 🔵 Étudiant | Formations structurées, certifications valorisables |
-| 🟠 Professionnel | Cas d'usage métier, automatisation, prompt engineering |
-| 🟢 Développeur | LLM, APIs IA, intégration, fine-tuning |
-| ⚪ Curieux | Veille, actualités IA, ressources libres d'accès |
+| Débutant | Cours d'introduction, vocabulaire, premiers outils IA |
+| Étudiant | Formations structurées, certifications valorisables |
+| Professionnel | Cas d'usage métier, automatisation, prompt engineering |
+| Développeur | LLM, APIs IA, intégration, fine-tuning |
+| Curieux | Veille, actualités IA, ressources libres d'accès |
 
 </div>
 
 ---
 
-## 📚 Ce que couvre la plateforme
+## 📖 Ce que couvre la plateforme
 
 Toutes les thématiques liées à l'intelligence artificielle sont représentées :
 
@@ -133,7 +133,7 @@ L'abonnement Premium est géré via **Stripe Checkout** de manière entièrement
 
 ---
 
-## 🚧 Etat du projet
+## 🔥 État du projet
 
 Le projet est **en production et fonctionnel** mais le développement est actif et continu.
 
