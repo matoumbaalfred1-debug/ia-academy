@@ -2,24 +2,25 @@
 
 <br/>
 
-# IA Academy
-
-### Se Former. Innover. Transformer.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://capsule-render.vercel.app/api?type=waving&color=7B2FFF&height=200&section=header&text=IA%20Academy&fontSize=60&fontColor=ffffff&fontAlignY=35&desc=Se%20Former.%20Innover.%20Transformer.&descAlignY=55&descSize=18&animation=fadeIn"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=200&section=header&text=IA%20Academy&fontSize=60&fontColor=ffffff&fontAlignY=35&desc=Se%20Former.%20Innover.%20Transformer.&descAlignY=55&descSize=18&animation=fadeIn" width="100%"/>
+</picture>
 
 <br/>
 
-[![Live](https://img.shields.io/badge/Production-Live-00C96B?style=flat-square)](https://iaacademy.fr)
+[![Status](https://img.shields.io/badge/🚧%20En%20développement%20actif-orange?style=for-the-badge)](.)
+[![Live](https://img.shields.io/badge/🚀%20Production-Live-00C96B?style=for-the-badge)](https://iaacademy.fr)
+
+<br/>
+
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
 [![Deno](https://img.shields.io/badge/Deno-000000?style=flat-square&logo=deno&logoColor=white)](https://deno.com)
 [![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=flat-square&logo=stripe&logoColor=white)](https://stripe.com)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/fr/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/fr/docs/Web/CSS)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/fr/docs/Web/JavaScript)
 [![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=flat-square&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com)
-
-<br/>
-
-> Plateforme d'apprentissage moderne dédiée à l'intelligence artificielle.
-> Formations structurées, certifications, et interface admin complète — en production.
 
 <br/>
 
@@ -27,56 +28,142 @@
 
 ---
 
-## 📋 Sommaire
+## 📌 Sommaire
 
-- [✨ Fonctionnalités](#-fonctionnalités)
-- [🛠️ Stack technique](#️-stack-technique)
-- [🏗️ Architecture](#️-architecture)
-- [📁 Structure du projet](#-structure-du-projet)
-- [🚀 Déploiement](#-déploiement)
-- [🔐 Sécurité](#-sécurité)
-- [🤝 Contribuer](#-contribuer)
+| | Section |
+|---|---------|
+| 01 | [Vue d'ensemble](#-vue-densemble) |
+| 02 | [A qui s'adresse la plateforme](#-a-qui-sadresse-la-plateforme) |
+| 03 | [Ce que couvre la plateforme](#-ce-que-couvre-la-plateforme) |
+| 04 | [Comment ça fonctionne](#-comment-ça-fonctionne) |
+| 05 | [Modèle d'accès](#-modèle-daccès) |
+| 06 | [Etat du projet](#-etat-du-projet) |
+| 07 | [Stack technique](#-stack-technique) |
+| 08 | [Architecture](#-architecture) |
+| 09 | [Structure du projet](#-structure-du-projet) |
+| 10 | [Déploiement](#-déploiement) |
+| 11 | [Sécurité](#-sécurité) |
+| 12 | [Contribuer](#-contribuer) |
 
 ---
 
-## ✨ Fonctionnalités
+## 🌐 Vue d'ensemble
 
-**Apprenants**
-- Catalogue de formations IA filtrable par thématique
-- Lecteur de cours intégré avec progression sauvegardée
-- Certifications téléchargeables à la fin de chaque parcours
-- Profil personnalisé avec statistiques
-- Ticker d'actualités IA en temps réel (OpenAI, Anthropic…)
+**IA Academy** est une plateforme d'apprentissage 100% dédiée à l'intelligence artificielle, accessible à **tout le monde** sans distinction de niveau ou de profil.
 
-**Authentification**
-- Inscription et connexion par email / mot de passe
-- Timeout automatique après 30 min d'inactivité
-- Avertissement 2 min avant expiration avec countdown interactif
-- Déconnexion propre sur toutes les surfaces
+L'objectif est simple : **démocratiser l'accès à la formation en IA** en proposant un catalogue structuré de cours, tutoriels et certifications — des fondamentaux jusqu'aux applications les plus avancées — dans une interface moderne, fluide et sécurisée.
 
-**Paiements**
-- Abonnements Premium via Stripe Checkout
-- Redirection validée uniquement vers `checkout.stripe.com`
-- Session de paiement créée côté serveur via Edge Function Deno
+La plateforme fonctionne sur un modèle **Freemium** : une grande partie du contenu est accessible gratuitement, et un abonnement Premium débloque les formations avancées et les certifications.
 
-**Interface**
-- Responsive design complet avec menu burger mobile
-- Animations CSS et micro-interactions soignées
-- Design system cohérent via variables CSS
+> ⚠️ Le site est en production et fonctionnel. Des améliorations sont apportées en continu — certaines sections évoluent régulièrement.
+
+---
+
+## 👥 A qui s'adresse la plateforme
+
+<div align="center">
+
+| Profil | Ce qu'il trouve sur IA Academy |
+|--------|-------------------------------|
+| 🟣 Débutant | Cours d'introduction, vocabulaire, premiers outils IA |
+| 🔵 Étudiant | Formations structurées, certifications valorisables |
+| 🟠 Professionnel | Cas d'usage métier, automatisation, prompt engineering |
+| 🟢 Développeur | LLM, APIs IA, intégration, fine-tuning |
+| ⚪ Curieux | Veille, actualités IA, ressources libres d'accès |
+
+</div>
+
+---
+
+## 📚 Ce que couvre la plateforme
+
+Toutes les thématiques liées à l'intelligence artificielle sont représentées :
+
+- **Fondamentaux de l'IA** — comprendre comment fonctionnent les modèles
+- **Prompt Engineering** — maîtriser la communication avec les LLM
+- **Outils no-code IA** — ChatGPT, Midjourney, Notion AI et autres
+- **Développement IA** — APIs, LangChain, Python, intégrations
+- **IA appliquée aux métiers** — marketing, design, juridique, finance, éducation
+- **Actualités et veille** — ticker en temps réel sur les dernières évolutions (OpenAI, Anthropic…)
+
+---
+
+## ⚙️ Comment ça fonctionne
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   1. Inscription gratuite                                   │
+│          │                                                  │
+│          ▼                                                  │
+│   2. Accès au catalogue — formations libres disponibles     │
+│          │                                                  │
+│          ▼                                                  │
+│   3. Progression sauvegardée automatiquement                │
+│          │                                                  │
+│          ▼                                                  │
+│   4. Certification obtenue à la fin de chaque parcours      │
+│          │                                                  │
+│          ▼                                                  │
+│   5. Passage en Premium pour débloquer le contenu avancé    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Chaque utilisateur dispose d'un **profil personnalisé** avec ses statistiques de progression, ses formations en cours et ses certifications.
+
+---
+
+## 💎 Modèle d'accès
+
+<div align="center">
+
+| | Gratuit | Premium |
+|-|---------|---------|
+| Catalogue de base | ✅ | ✅ |
+| Formations avancées | ❌ | ✅ |
+| Certifications | ❌ | ✅ |
+| Contenu exclusif | ❌ | ✅ |
+| Support prioritaire | ❌ | ✅ |
+| Accès anticipé | ❌ | ✅ |
+
+</div>
+
+L'abonnement Premium est géré via **Stripe Checkout** de manière entièrement sécurisée.
+
+---
+
+## 🚧 Etat du projet
+
+Le projet est **en production et fonctionnel** mais le développement est actif et continu.
+
+Les axes d'amélioration en cours :
+
+- Optimisation des performances et du temps de chargement
+- Enrichissement du catalogue (ajout régulier de formations)
+- Amélioration de l'expérience mobile
+- Nouvelles fonctionnalités pour l'espace membre
+- Refactorisation progressive du code
+
+Les retours, signalements de bugs et contributions sont les bienvenus.
 
 ---
 
 ## 🛠️ Stack technique
 
+<div align="center">
+
 | Couche | Technologie | Rôle |
 |--------|-------------|------|
 | Frontend | HTML5 · CSS3 · JavaScript ES6+ | Interface utilisateur |
-| Typographie | Google Fonts (Fraunces + DM Sans) | Design |
-| Auth & BDD | Supabase (GoTrue + PostgreSQL) | Utilisateurs, données |
+| Typographie | Google Fonts — Fraunces + DM Sans | Design |
+| Auth & BDD | Supabase (GoTrue + PostgreSQL) | Utilisateurs et données |
 | Storage | Supabase Storage | Médias et fichiers |
-| Edge Functions | Deno via Supabase | Logique serveur, checkout |
+| Edge Functions | Deno via Supabase | Logique serveur et checkout |
 | Paiements | Stripe Checkout | Abonnements Premium |
-| IDE | VS Code + Deno extension | Développement |
+| IDE | VS Code + extension Deno | Développement |
+
+</div>
 
 ---
 
@@ -84,16 +171,16 @@
 
 ```
 Browser
-├── index.html     → App principale (landing · cours · profil)
-└── admin.html     → Tableau de bord administrateur
+├── index.html     →  App principale (landing · cours · profil)
+└── admin.html     →  Tableau de bord administrateur
          │
          ▼
 Supabase
-├── Auth (GoTrue)
-├── Database (PostgreSQL)
-├── Storage
+├── Auth (GoTrue)        →  Inscription, connexion, session
+├── Database (PostgreSQL) →  Utilisateurs, formations, progressions
+├── Storage              →  Médias et fichiers
 └── Edge Functions (Deno)
-    └── create-checkout
+    └── create-checkout  →  Création session Stripe
          │
          ▼
 Stripe API
@@ -108,7 +195,7 @@ Stripe API
 iaacademy/
 │
 ├── index.html                   # App principale
-├── admin.html                   # Interface admin
+├── admin.html                   # Interface administrateur
 │
 ├── favicon.svg
 ├── favicon.ico
@@ -118,7 +205,7 @@ iaacademy/
 │
 ├── supabase/
 │   └── functions/
-│       └── create-checkout/     # Edge Function Deno
+│       └── create-checkout/     # Edge Function Deno — session Stripe
 │
 ├── .vscode/
 │   ├── settings.json            # Deno activé sur supabase/functions uniquement
@@ -127,7 +214,7 @@ iaacademy/
 └── README.md
 ```
 
-> Architecture monolithique : styles et scripts embarqués dans les HTML, aucun build step requis.
+> Architecture monolithique : styles et scripts embarqués dans les fichiers HTML, aucun build step requis.
 
 ---
 
@@ -174,13 +261,15 @@ supabase secrets set STRIPE_PRICE_ID=price_...
 # Vercel
 npx vercel --prod
 
-# ou Netlify — drag & drop index.html + admin.html
-# ou GitHub Pages — activer sur la branche main
+# Netlify — drag & drop index.html + admin.html
+# GitHub Pages — activer sur la branche main
 ```
 
 ---
 
 ## 🔐 Sécurité
+
+<div align="center">
 
 | Mesure | Détail |
 |--------|--------|
@@ -191,30 +280,9 @@ npx vercel --prod
 | Session timeout | Auto-logout après 30 min d'inactivité |
 | Warning session | Countdown 2 min avant expiration |
 | Stripe | Validation de l'URL avant toute redirection |
-| Avatars | Whitelist stricte des domaines d'images |
+| Avatars | Whitelist stricte des domaines autorisés |
 
-### Cycle de vie de la session
-
-```
-Activité utilisateur  →  Timer reset
-                               │
-                         28 min sans activité
-                               │
-                               ▼
-                      ┌─── Avertissement ───┐
-                      │   Countdown 2:00    │
-                      └─────────┬───────────┘
-                                │
-               ┌────────────────┴────────────────┐
-               │                                 │
-       "Rester connecté"               "Se déconnecter"
-               │                                 │
-          Timer reset                      Logout immédiat
-                                                 │
-                                          30 min atteintes
-                                                 │
-                                            Auto-logout
-```
+</div>
 
 ---
 
@@ -227,6 +295,8 @@ git push origin feature/ma-feature
 # → Ouvrir une Pull Request
 ```
 
+<div align="center">
+
 | Préfixe | Usage |
 |---------|-------|
 | `feat:` | Nouvelle fonctionnalité |
@@ -236,7 +306,11 @@ git push origin feature/ma-feature
 | `docs:` | Documentation |
 | `chore:` | Maintenance |
 
+</div>
+
 ---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=100&section=footer" width="100%"/>
 
 <div align="center">
 
