@@ -143,7 +143,7 @@ Les axes d'amélioration en cours :
 - Enrichissement du catalogue (ajout régulier de formations)
 - Amélioration de l'expérience mobile
 - Nouvelles fonctionnalités pour l'espace membre
-- Refactorisation progressive du code
+- Refactorisation progressive du code (CSS et JS désormais externalisés)
 
 Les retours, signalements de bugs et contributions sont les bienvenus.
 
@@ -176,11 +176,11 @@ Browser
          │
          ▼
 Supabase
-├── Auth (GoTrue)        →  Inscription, connexion, session
+├── Auth (GoTrue)         →  Inscription, connexion, session
 ├── Database (PostgreSQL) →  Utilisateurs, formations, progressions
-├── Storage              →  Médias et fichiers
+├── Storage               →  Médias et fichiers
 └── Edge Functions (Deno)
-    └── create-checkout  →  Création session Stripe
+    └── create-checkout   →  Création session Stripe
          │
          ▼
 Stripe API
@@ -194,27 +194,39 @@ Stripe API
 ```
 iaacademy/
 │
-├── index.html                   # App principale
-├── admin.html                   # Interface administrateur
+├── index.html                     # App principale
+├── admin.html                     # Interface administrateur
+├── README.md
 │
-├── favicon.svg
-├── favicon.ico
-├── favicon-32x32.png
-├── favicon-16x16.png
-├── apple-touch-icon.png
+├── css/
+│   ├── style.css                  # Styles principaux (~8 600 lignes)
+│   ├── password-checklist.css     # Checklist mot de passe (modale inscription)
+│   └── nav-logged.css             # État connecté / navigation
 │
-├── supabase/
-│   └── functions/
-│       └── create-checkout/     # Edge Function Deno — session Stripe
+├── js/
+│   ├── main.js                    # Ticker + scroll reveal
+│   ├── ui.js                      # UI complète : modales, navigation, reader de cours
+│   ├── fixes.js                   # Correctifs boutons page détail cours
+│   ├── stripe.js                  # Redirections et boutons Stripe
+│   ├── supabase.min.js            # SDK Supabase bundlé (ne pas modifier)
+│   ├── auth.js                    # Authentification : login, signup, OTP, profil
+│   ├── catalogue.js               # Chargement dynamique du catalogue
+│   ├── burger.js                  # Menu burger mobile
+│   └── session.js                 # Timeout de session automatique (30 min)
 │
-├── .vscode/
-│   ├── settings.json            # Deno activé sur supabase/functions uniquement
-│   └── extensions.json          # Recommande denoland.vscode-deno
+├── favicon_io/
+│   ├── favicon.svg
+│   ├── favicon.ico
+│   ├── favicon-32x32.png
+│   ├── favicon-16x16.png
+│   └── apple-touch-icon.png
 │
-└── README.md
+└── supabase/
+    └── functions/
+        └── create-checkout/       # Edge Function Deno — session Stripe
 ```
 
-> Architecture monolithique : styles et scripts embarqués dans les fichiers HTML, aucun build step requis.
+> Les styles et scripts sont externalisés dans `css/` et `js/` — aucun build step requis.
 
 ---
 
@@ -236,7 +248,7 @@ cd iaacademy
 
 ### 2. Relier Supabase
 
-Dans `index.html`, remplace les deux valeurs :
+Dans `js/auth.js`, remplace les deux valeurs :
 
 ```javascript
 const sb = supabase.createClient(
@@ -261,7 +273,7 @@ supabase secrets set STRIPE_PRICE_ID=price_...
 # Vercel
 npx vercel --prod
 
-# Netlify — drag & drop index.html + admin.html
+# Netlify — drag & drop du dossier du projet
 # GitHub Pages — activer sur la branche main
 ```
 
